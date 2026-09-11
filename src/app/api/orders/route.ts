@@ -32,32 +32,63 @@ export async function POST(req: Request) {
       );
     }
     if (rawItems.length === 0) {
-      return NextResponse.json({ ok: false, error: "سبد خرید خالی است" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "سبد خرید خالی است" },
+        { status: 400 },
+      );
     }
 
-    const ids = rawItems.map((i) => i.id).filter((x): x is string => Boolean(x));
-    const dbRows = ids.length
-      ? await db.select().from(products).where(inArray(products.id, ids))
-      : [];
+    // فقط id محصولات رو از کلاینت می‌گیریم (به بقیه فیلدها اعتماد نمی‌کنیم)
+    const ids = rawItems
+      .map((i) => i.id)
+      .filter((x): x is string => Boolean(x));
+
+    if (ids.length === 0) {
+      return NextResponse.json(
+        { ok: false, error: "شناسه محصولات نامعتبر است" },
+        { status: 400 },
+      );
+    }
+
+    const dbRows = await db
+      .select()
+      .from(products)
+      .where(inArray(products.id, ids));
     const byId = new Map(dbRows.map((r) => [r.id, r]));
 
+    // ⚠️ همه چیز از دیتابیس خونده میشه، نه از کلاینت
     const items = rawItems
       .map((i) => {
-        const qty = Math.max(1, Math.min(999, Math.floor(Number(i.qty) || 1)));
         const dbp = i.id ? byId.get(i.id) : undefined;
+
+        // اگه محصول توی DB نبود → کاملاً رد کن
+        if (!dbp) return null;
+
+        // اگه محصول غیرفعال بود → رد کن
+        if (!dbp.active) return null;
+
+        const qty = Math.max(1, Math.min(999, Math.floor(Number(i.qty) || 1)));
+
+        // اگه موجودی کافی نبود → با موجودی موجود ثبت کن (یا کلاً رد کن)
+        const safeQty = dbp.stock > 0 ? Math.min(qty, dbp.stock) : qty;
+
         return {
-          productId: dbp?.id ?? null,
-          name: dbp?.name ?? (i.name ?? "").slice(0, 200),
-          partNumber: dbp?.partNumber ?? (i.partNumber ?? "").slice(0, 80),
-          price: dbp?.price ?? Math.max(0, Math.floor(Number(i.price) || 0)),
-          qty,
+          productId: dbp.id,
+          name: dbp.name,
+          partNumber: dbp.partNumber,
+          price: dbp.price, // ✅ قیمت همیشه از دیتابیس
+          qty: safeQty,
         };
       })
-      .filter((i) => i.name || i.productId);
+      .filter((i): i is NonNullable<typeof i> => i !== null);
 
     if (items.length === 0) {
-      return NextResponse.json({ ok: false, error: "اقلام نامعتبر است" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "هیچ محصول معتبری در سبد یافت نشد" },
+        { status: 400 },
+      );
     }
+
     const total = items.reduce((s, i) => s + i.price * i.qty, 0);
 
     const [row] = await db
@@ -74,6 +105,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, id: row.id });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ ok: false, error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "خطای سرور" },
+      { status: 500 },
+    );
   }
 }

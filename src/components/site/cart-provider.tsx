@@ -24,6 +24,12 @@ export type CartItem = {
   qty: number;
 };
 
+// چیزی که توی localStorage ذخیره میشه (فقط id و qty)
+type StoredCartItem = {
+  id: string;
+  qty: number;
+};
+
 type CartContextValue = {
   items: CartItem[];
   ready: boolean;
@@ -35,6 +41,7 @@ type CartContextValue = {
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
+  refreshPrices: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -45,40 +52,134 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
 
+  // گرفتن قیمت‌های لحظه‌ای از سرور و آپدیت سبد
+  const refreshPrices = useCallback(async (stored: StoredCartItem[]) => {
+    if (stored.length === 0) {
+      setItems([]);
+      return;
+    }
+    try {
+      const res = await fetch("/api/products/prices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: stored.map((s) => s.id) }),
+      });
+      if (!res.ok) throw new Error("failed");
+      const data = (await res.json()) as {
+        prices: {
+          id: string;
+          name: string;
+          slug: string;
+          price: number;
+          stock: number;
+          partNumber: string;
+          images: string[];
+        }[];
+      };
+
+      const fresh = stored
+        .map((s) => {
+          const p = data.prices.find((x) => x.id === s.id);
+          if (!p) return null; // محصول حذف/غیرفعال شده
+          return {
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+            price: p.price,
+            image: p.images?.[0] ?? "",
+            partNumber: p.partNumber,
+            qty: s.qty,
+          };
+        })
+        .filter((x): x is CartItem => x !== null);
+
+      setItems(fresh);
+    } catch {
+      // اگه سرور خطا داد، حداقل سبد قبلی رو نگه دار (فقط id و qty)
+      setItems((prev) => prev);
+    }
+  }, []);
+
+  // لود اولیه از localStorage + گرفتن قیمت جدید
   useEffect(() => {
+    let stored: StoredCartItem[] = [];
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as CartItem[];
-        if (Array.isArray(parsed)) setItems(parsed.filter((i) => i && i.id));
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+          stored = parsed
+            .filter(
+              (i): i is StoredCartItem =>
+                !!i && typeof (i as StoredCartItem).id === "string",
+            )
+            .map((i) => ({
+              id: i.id,
+              qty: Math.max(1, Math.min(999, Math.floor(Number(i.qty) || 1))),
+            }));
+        }
       }
     } catch {
       /* ignore */
     }
-    setReady(true);
-  }, []);
+    refreshPrices(stored).finally(() => setReady(true));
+  }, [refreshPrices]);
 
+  // ذخیره توی localStorage (فقط id و qty)
   useEffect(() => {
     if (!ready) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      const toStore: StoredCartItem[] = items.map((i) => ({
+        id: i.id,
+        qty: i.qty,
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
     } catch {
       /* ignore */
     }
   }, [items, ready]);
 
-  const add = useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
-    setItems((prev) => {
-      const found = prev.find((p) => p.id === item.id);
-      if (found) {
-        return prev.map((p) =>
-          p.id === item.id ? { ...p, qty: Math.min(999, p.qty + qty) } : p,
-        );
-      }
-      return [...prev, { ...item, qty }];
+  const add = useCallback(
+    (item: Omit<CartItem, "qty">, qty = 1) => {
+      setItems((prev) => {
+        const found = prev.find((p) => p.id === item.id);
+        if (found) {
+          return prev.map((p) =>
+            p.id === item.id ? { ...p, qty: Math.min(999, p.qty + qty) } : p,
+          );
+        }
+        return [...prev, { ...item, qty }];
+      });
+      setOpen(true);
+
+      // بعد از اضافه کردن، قیمت‌ها رو رفرش کن تا مطمئن بشی جدیده
+      setTimeout(() => {
+        const stored: StoredCartItem[] = [];
+        setItems((cur) => {
+          stored.push(...cur.map((c) => ({ id: c.id, qty: c.qty })));
+          return cur;
+        });
+        // از روی localStorage هم می‌تونیم بخونیم؛ ولی چون state async هست،
+        // یک بار دیگه از خود state فعلی رفرش می‌کنیم:
+        refreshPricesFromCurrent();
+      }, 0);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  // تابع کمکی که از state فعلی items استفاده می‌کنه
+  const refreshPricesFromCurrent = useCallback(() => {
+    setItems((cur) => {
+      const stored: StoredCartItem[] = cur.map((c) => ({
+        id: c.id,
+        qty: c.qty,
+      }));
+      // اجرا کردن رفرش به‌صورت async
+      void refreshPrices(stored);
+      return cur;
     });
-    setOpen(true);
-  }, []);
+  }, [refreshPrices]);
 
   const remove = useCallback((id: string) => {
     setItems((prev) => prev.filter((p) => p.id !== id));
@@ -86,7 +187,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const setQty = useCallback((id: string, qty: number) => {
     setItems((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, qty: Math.max(1, Math.min(999, qty)) } : p)),
+      prev.map((p) =>
+        p.id === id ? { ...p, qty: Math.max(1, Math.min(999, qty)) } : p,
+      ),
     );
   }, []);
 
@@ -101,8 +204,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ items, ready, count, total, open, setOpen, add, remove, setQty, clear }),
-    [items, ready, count, total, open, add, remove, setQty, clear],
+    () => ({
+      items,
+      ready,
+      count,
+      total,
+      open,
+      setOpen,
+      add,
+      remove,
+      setQty,
+      clear,
+      refreshPrices: async () => {
+        const stored: StoredCartItem[] = items.map((i) => ({
+          id: i.id,
+          qty: i.qty,
+        }));
+        await refreshPrices(stored);
+      },
+    }),
+    [
+      items,
+      ready,
+      count,
+      total,
+      open,
+      add,
+      remove,
+      setQty,
+      clear,
+      refreshPrices,
+    ],
   );
 
   return (
@@ -166,7 +298,9 @@ function CartDrawer() {
             </span>
             <div>
               <p className="text-sm font-extrabold text-ink-950">سبد خرید</p>
-              <p className="text-[11px] text-zinc-400 tnum">{items.length} قلم کالا</p>
+              <p className="text-[11px] text-zinc-400 tnum">
+                {items.length} قلم کالا
+              </p>
             </div>
           </div>
           <button
@@ -184,9 +318,17 @@ function CartDrawer() {
               <span className="grid h-16 w-16 place-items-center rounded-3xl bg-gold-50 text-gold-400">
                 <ShoppingBag className="h-7 w-7" />
               </span>
-              <p className="text-sm font-bold text-zinc-700">سبد خرید شما خالی است</p>
-              <p className="text-xs text-zinc-400">قطعه موردنظر خود را از فروشگاه انتخاب کنید</p>
-              <Link href="/products" onClick={() => setOpen(false)} className="btn-gold mt-2 px-6 py-2.5 text-xs">
+              <p className="text-sm font-bold text-zinc-700">
+                سبد خرید شما خالی است
+              </p>
+              <p className="text-xs text-zinc-400">
+                قطعه موردنظر خود را از فروشگاه انتخاب کنید
+              </p>
+              <Link
+                href="/products"
+                onClick={() => setOpen(false)}
+                className="btn-gold mt-2 px-6 py-2.5 text-xs"
+              >
                 مشاهده فروشگاه
               </Link>
             </div>
@@ -200,7 +342,12 @@ function CartDrawer() {
                   <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gold-50">
                     {item.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" loading="lazy" />
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
                     ) : null}
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col">
@@ -225,7 +372,9 @@ function CartDrawer() {
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="min-w-6 text-center text-xs font-extrabold tnum">{item.qty}</span>
+                        <span className="min-w-6 text-center text-xs font-extrabold tnum">
+                          {item.qty}
+                        </span>
                         <button
                           className="grid h-6 w-6 place-items-center rounded-full text-zinc-600 hover:bg-zinc-100"
                           onClick={() => setQty(item.id, item.qty - 1)}
@@ -237,7 +386,9 @@ function CartDrawer() {
                       <div className="flex items-center gap-2">
                         <span className="text-[13px] font-extrabold text-ink-950 tnum">
                           {formatPrice(item.price * item.qty)}
-                          <span className="mr-1 text-[10px] font-bold text-zinc-400">تومان</span>
+                          <span className="mr-1 text-[10px] font-bold text-zinc-400">
+                            تومان
+                          </span>
                         </span>
                         <button
                           className="text-zinc-300 transition hover:text-red-500"
@@ -261,17 +412,18 @@ function CartDrawer() {
               <span className="text-xs font-bold text-zinc-500">جمع کل</span>
               <span className="text-lg font-black text-ink-950 tnum">
                 {formatPrice(total)}
-                <span className="mr-1 text-[11px] font-bold text-zinc-400">تومان</span>
+                <span className="mr-1 text-[11px] font-bold text-zinc-400">
+                  تومان
+                </span>
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Link href="/cart" onClick={() => setOpen(false)} className="btn-gold py-3 text-xs">
-                تکمیل خرید
-              </Link>
-              <button onClick={() => setOpen(false)} className="btn-outline py-3 text-xs">
-                ادامه خرید
-              </button>
-            </div>
+            <Link
+              href="/cart"
+              onClick={() => setOpen(false)}
+              className="btn-gold block w-full py-3 text-xs text-center"
+            >
+              پرداخت
+            </Link>
           </div>
         ) : null}
       </div>

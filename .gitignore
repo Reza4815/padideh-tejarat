@@ -6,3 +6,4 @@ uploads
 "*.db"
 "*.sqlite"
 .DS_Store
+README.md
