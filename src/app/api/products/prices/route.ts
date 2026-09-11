@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { inArray, eq, and, desc } from "drizzle-orm";
+import { and, desc, eq, inArray, not } from "drizzle-orm";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
           excludeIds.length > 0
             ? and(
                 eq(products.active, true),
-                inArray(products.id, excludeIds).not(),
+                not(inArray(products.id, excludeIds)),
               )
             : eq(products.active, true),
         )
@@ -47,6 +47,7 @@ export async function POST(request: Request) {
 
     // ✅ حالت عادی: گرفتن قیمت‌های لحظه‌ای
     const rawIds = body?.ids;
+
     if (!Array.isArray(rawIds) || rawIds.length === 0) {
       return NextResponse.json({ prices: [] });
     }
