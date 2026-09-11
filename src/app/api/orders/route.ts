@@ -6,9 +6,6 @@ import { ensureSeed } from "@/lib/data";
 
 type IncomingItem = {
   id?: string;
-  name?: string;
-  partNumber?: string;
-  price?: number;
   qty?: number;
 };
 
@@ -18,16 +15,59 @@ export async function POST(req: Request) {
     const body = (await req.json()) as {
       customerName?: string;
       phone?: string;
+      province?: string;
+      city?: string;
+      address?: string;
+      postalCode?: string;
+      plateNumber?: string;
       note?: string;
       items?: IncomingItem[];
     };
+
     const customerName = (body.customerName ?? "").trim();
     const phone = (body.phone ?? "").trim();
+    const province = (body.province ?? "").trim();
+    const city = (body.city ?? "").trim();
+    const address = (body.address ?? "").trim();
+    const postalCode = (body.postalCode ?? "").trim();
+    const plateNumber = (body.plateNumber ?? "").trim();
+
     const rawItems = Array.isArray(body.items) ? body.items.slice(0, 40) : [];
 
-    if (!customerName || !phone || phone.replace(/\D/g, "").length < 8) {
+    // اعتبارسنجی فیلدهای اجباری
+    if (!customerName) {
       return NextResponse.json(
-        { ok: false, error: "نام و شماره تماس معتبر الزامی است" },
+        { ok: false, error: "نام و نام خانوادگی الزامی است" },
+        { status: 400 },
+      );
+    }
+    if (!phone || phone.replace(/\D/g, "").length < 10) {
+      return NextResponse.json(
+        { ok: false, error: "شماره موبایل معتبر الزامی است" },
+        { status: 400 },
+      );
+    }
+    if (!province) {
+      return NextResponse.json(
+        { ok: false, error: "استان الزامی است" },
+        { status: 400 },
+      );
+    }
+    if (!city) {
+      return NextResponse.json(
+        { ok: false, error: "شهر الزامی است" },
+        { status: 400 },
+      );
+    }
+    if (address.length < 5) {
+      return NextResponse.json(
+        { ok: false, error: "آدرس پستی الزامی است (حداقل ۵ کاراکتر)" },
+        { status: 400 },
+      );
+    }
+    if (!/^\d{10}$/.test(postalCode.replace(/\D/g, ""))) {
+      return NextResponse.json(
+        { ok: false, error: "کد پستی باید ۱۰ رقم باشد" },
         { status: 400 },
       );
     }
@@ -38,7 +78,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // فقط id محصولات رو از کلاینت می‌گیریم (به بقیه فیلدها اعتماد نمی‌کنیم)
     const ids = rawItems
       .map((i) => i.id)
       .filter((x): x is string => Boolean(x));
@@ -56,27 +95,20 @@ export async function POST(req: Request) {
       .where(inArray(products.id, ids));
     const byId = new Map(dbRows.map((r) => [r.id, r]));
 
-    // ⚠️ همه چیز از دیتابیس خونده میشه، نه از کلاینت
     const items = rawItems
       .map((i) => {
         const dbp = i.id ? byId.get(i.id) : undefined;
-
-        // اگه محصول توی DB نبود → کاملاً رد کن
         if (!dbp) return null;
-
-        // اگه محصول غیرفعال بود → رد کن
         if (!dbp.active) return null;
 
         const qty = Math.max(1, Math.min(999, Math.floor(Number(i.qty) || 1)));
-
-        // اگه موجودی کافی نبود → با موجودی موجود ثبت کن (یا کلاً رد کن)
         const safeQty = dbp.stock > 0 ? Math.min(qty, dbp.stock) : qty;
 
         return {
           productId: dbp.id,
           name: dbp.name,
           partNumber: dbp.partNumber,
-          price: dbp.price, // ✅ قیمت همیشه از دیتابیس
+          price: dbp.price,
           qty: safeQty,
         };
       })
@@ -96,6 +128,11 @@ export async function POST(req: Request) {
       .values({
         customerName,
         phone,
+        province,
+        city,
+        address,
+        postalCode: postalCode.replace(/\D/g, ""),
+        plateNumber,
         note: (body.note ?? "").trim().slice(0, 1000),
         items,
         total,

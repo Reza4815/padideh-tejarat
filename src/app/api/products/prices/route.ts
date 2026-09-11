@@ -1,19 +1,56 @@
 import { NextResponse } from "next/server";
-import { inArray, eq, and } from "drizzle-orm";
+import { inArray, eq, and, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as { ids?: unknown };
-    const rawIds = body?.ids;
+    const body = (await request.json()) as {
+      ids?: unknown;
+      mode?: "prices" | "suggested";
+      excludeIds?: string[];
+    };
 
-    // اعتبارسنجی: باید آرایه باشه
+    // ✅ حالت پیشنهاد محصول
+    if (body.mode === "suggested") {
+      const excludeIds = Array.isArray(body.excludeIds)
+        ? body.excludeIds.filter((x): x is string => typeof x === "string")
+        : [];
+
+      const rows = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          slug: products.slug,
+          price: products.price,
+          compareAtPrice: products.compareAtPrice,
+          stock: products.stock,
+          partNumber: products.partNumber,
+          brand: products.brand,
+          images: products.images,
+          active: products.active,
+        })
+        .from(products)
+        .where(
+          excludeIds.length > 0
+            ? and(
+                eq(products.active, true),
+                inArray(products.id, excludeIds).not(),
+              )
+            : eq(products.active, true),
+        )
+        .orderBy(desc(products.featured), desc(products.createdAt))
+        .limit(4);
+
+      return NextResponse.json({ prices: rows });
+    }
+
+    // ✅ حالت عادی: گرفتن قیمت‌های لحظه‌ای
+    const rawIds = body?.ids;
     if (!Array.isArray(rawIds) || rawIds.length === 0) {
       return NextResponse.json({ prices: [] });
     }
 
-    // فقط UUID های معتبر و غیرتکراری، حداکثر ۱۰۰ تا
     const cleanIds = Array.from(
       new Set(
         rawIds.filter(
@@ -26,7 +63,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ prices: [] });
     }
 
-    // قیمت و اطلاعات لحظه‌ای رو از دیتابیس بگیر
     const rows = await db
       .select({
         id: products.id,
@@ -41,12 +77,7 @@ export async function POST(request: Request) {
         active: products.active,
       })
       .from(products)
-      .where(
-        and(
-          inArray(products.id, cleanIds),
-          eq(products.active, true), // فقط محصولات فعال
-        ),
-      );
+      .where(and(inArray(products.id, cleanIds), eq(products.active, true)));
 
     return NextResponse.json({ prices: rows });
   } catch (error) {
