@@ -30,6 +30,10 @@ type StoredCartItem = {
   qty: number;
 };
 
+type AddOptions = {
+  openDrawer?: boolean;
+};
+
 type CartContextValue = {
   items: CartItem[];
   ready: boolean;
@@ -37,7 +41,11 @@ type CartContextValue = {
   total: number;
   open: boolean;
   setOpen: (v: boolean) => void;
-  add: (item: Omit<CartItem, "qty">, qty?: number) => void;
+  add: (
+    item: Omit<CartItem, "qty">,
+    qty?: number,
+    options?: AddOptions,
+  ) => void;
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
@@ -140,7 +148,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, ready]);
 
   const add = useCallback(
-    (item: Omit<CartItem, "qty">, qty = 1) => {
+    (item: Omit<CartItem, "qty">, qty = 1, options?: AddOptions) => {
       setItems((prev) => {
         const found = prev.find((p) => p.id === item.id);
         if (found) {
@@ -150,7 +158,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         return [...prev, { ...item, qty }];
       });
-      setOpen(true);
+
+      // فقط اگه openDrawer !== false باشه، Drawer باز کن
+      if (options?.openDrawer !== false) {
+        setOpen(true);
+      }
 
       // بعد از اضافه کردن، قیمت‌ها رو رفرش کن تا مطمئن بشی جدیده
       setTimeout(() => {
@@ -159,8 +171,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           stored.push(...cur.map((c) => ({ id: c.id, qty: c.qty })));
           return cur;
         });
-        // از روی localStorage هم می‌تونیم بخونیم؛ ولی چون state async هست،
-        // یک بار دیگه از خود state فعلی رفرش می‌کنیم:
         refreshPricesFromCurrent();
       }, 0);
     },
