@@ -246,10 +246,12 @@ export function CartView() {
 
           <form
             onSubmit={submit}
-            className="rounded-3xl border border-gold-200 bg-gold-50/60 p-6"
+            className="rounded-3xl border border-gold-200 bg-gold-50/60 p-6 dark:border-gold-700/40 dark:bg-zinc-900/60"
           >
-            <h2 className="text-sm font-black text-ink-950">ثبت سفارش</h2>
-            <p className="mt-1.5 text-[11px] leading-5 text-zinc-500">
+            <h2 className="text-sm font-black text-ink-950 dark:text-zinc-100">
+              ثبت سفارش
+            </h2>
+            <p className="mt-1.5 text-[11px] leading-5 text-zinc-500 dark:text-zinc-400">
               پس از ثبت، کارشناسان ما برای هماهنگی پرداخت و ارسال با شما تماس
               می‌گیرند.
             </p>
@@ -258,13 +260,13 @@ export function CartView() {
                 name="name"
                 required
                 placeholder="نام و نام خانوادگی *"
-                className="field"
+                className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               />
               <input
                 name="phone"
                 required
                 placeholder="شماره موبایل *"
-                className="field"
+                className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                 dir="ltr"
                 style={{ textAlign: "right" }}
               />
@@ -272,11 +274,11 @@ export function CartView() {
                 name="note"
                 rows={2}
                 placeholder="توضیحات (اختیاری)"
-                className="field resize-none"
+                className="field resize-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               />
             </div>
             {status === "err" && (
-              <p className="mt-3 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600">
+              <p className="mt-3 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 dark:bg-red-950/50 dark:text-red-400">
                 {error}
               </p>
             )}
