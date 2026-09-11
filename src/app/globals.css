@@ -1,0 +1,425 @@
+@custom-variant dark (&:where(.dark, .dark *));
+@import "tailwindcss";
+
+@theme {
+  --font-sans:
+    var(--font-vazir), "Vazirmatn", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Tahoma, sans-serif;
+
+  --color-gold-50: #fdfaf3;
+  --color-gold-100: #faf3e0;
+  --color-gold-200: #f4e6bd;
+  --color-gold-300: #ead18c;
+  --color-gold-400: #deb75c;
+  --color-gold-500: #cfa338;
+  --color-gold-600: #b5872c;
+  --color-gold-700: #91682a;
+  --color-gold-800: #785427;
+  --color-gold-900: #664722;
+
+  --color-ink-950: #101014;
+
+  --animate-marquee: marquee 46s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-spin-slow: spin 16s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #ffffff;
+  color: #3f3f46;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.dark body {
+  background-color: #0a0a0f;
+  color: #e4e4e7;
+}
+
+::selection {
+  background: #f4e6bd;
+  color: #101014;
+}
+.dark ::selection {
+  background: #b5872c;
+  color: #fdfaf3;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #faf8f4;
+}
+::-webkit-scrollbar-thumb {
+  background: #e6d9b4;
+  border-radius: 999px;
+  border: 2px solid #faf8f4;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cfa338;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #18181b;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-color: #18181b;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #cfa338;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- reveal-on-scroll motion ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---------- luxury helpers ---------- */
+.bg-gold-radial {
+  background-image:
+    radial-gradient(
+      60rem 32rem at 88% -12%,
+      rgba(207, 163, 56, 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      48rem 28rem at -8% 108%,
+      rgba(207, 163, 56, 0.12),
+      transparent 55%
+    );
+}
+.dark .bg-gold-radial {
+  background-image:
+    radial-gradient(
+      60rem 32rem at 88% -12%,
+      rgba(207, 163, 56, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      48rem 28rem at -8% 108%,
+      rgba(207, 163, 56, 0.06),
+      transparent 55%
+    );
+}
+
+.bg-dotgrid {
+  background-image: radial-gradient(
+    rgba(16, 16, 20, 0.07) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+.dark .bg-dotgrid {
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px
+  );
+}
+
+.text-gold-gradient {
+  background: linear-gradient(120deg, #b5872c 0%, #e6c464 45%, #91682a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.dark .text-gold-gradient {
+  background: linear-gradient(120deg, #deb75c 0%, #f4e6bd 45%, #cfa338 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gold-ring {
+  box-shadow:
+    0 0 0 1px rgba(207, 163, 56, 0.35),
+    0 28px 64px -32px rgba(120, 84, 39, 0.45);
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ============================================ */
+/* ============ DARK MODE OVERRIDES =========== */
+/* ============================================ */
+
+/* --- عمومی --- */
+.dark body {
+  background-color: #0a0a0f !important;
+  color: #e4e4e7 !important;
+}
+
+/* --- کارت‌ها و پس‌زمینه‌ها --- */
+.dark .bg-white,
+.dark [class*="bg-white/"] {
+  background-color: #18181b !important;
+}
+
+.dark .bg-zinc-50,
+.dark [class*="bg-zinc-50/"],
+.dark .bg-zinc-100,
+.dark .bg-zinc-200 {
+  background-color: #18181b !important;
+}
+
+/* بخش طوسی روشن (چرا پدیده تجارت الوند) */
+.dark section.bg-gold-50\/40,
+.dark section[class*="bg-gold-50"],
+.dark div[class*="bg-gold-50"] {
+  background-color: #18181b !important;
+}
+
+/* ============================================ */
+/* گرادیان‌ها - فقط فوتر و بنر عمده‌فروشی       */
+/* ============================================ */
+
+/* فوتر گرادیانی */
+.dark footer.bg-gradient-to-b,
+.dark footer[class*="bg-gradient-to-b"] {
+  background-image: linear-gradient(to bottom, #18181b, #09090b) !important;
+}
+
+/* بنر عمده‌فروشی (داخل section#wholesale) */
+.dark #wholesale .bg-gradient-to-br,
+.dark #wholesale [class*="bg-gradient-to-br"] {
+  background-image: linear-gradient(
+    to bottom right,
+    #18181b,
+    #09090b
+  ) !important;
+}
+
+/* محافظت از گرادیان طلایی لوگو */
+.dark [class*="from-gold-300"] {
+  --tw-gradient-from: #ead18c !important;
+  --tw-gradient-via: #cfa338 !important;
+  --tw-gradient-to: #91682a !important;
+}
+
+/* ============================================ */
+/* --- بوردرها --- */
+.dark .border,
+.dark [class*="border-zinc-100"],
+.dark [class*="border-zinc-200"],
+.dark [class*="border-zinc-300"] {
+  border-color: #27272a !important;
+}
+
+.dark [class*="border-gold-100"],
+.dark [class*="border-gold-200"] {
+  border-color: #3f3f46 !important;
+}
+
+/* --- متن‌ها --- */
+.dark .text-ink-950,
+.dark .text-zinc-900,
+.dark .text-zinc-800,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4 {
+  color: #fafafa !important;
+}
+
+.dark .text-zinc-700,
+.dark .text-zinc-600 {
+  color: #d4d4d8 !important;
+}
+
+.dark .text-zinc-500,
+.dark .text-zinc-400 {
+  color: #a1a1aa !important;
+}
+
+.dark .text-gold-600,
+.dark .text-gold-700,
+.dark .text-gold-800 {
+  color: #deb75c !important;
+}
+
+/* --- دکمه‌ها --- */
+.dark .btn-outline {
+  background-color: #18181b !important;
+  border-color: #3f3f46 !important;
+  color: #e4e4e7 !important;
+}
+.dark .btn-outline:hover {
+  border-color: #deb75c !important;
+  color: #deb75c !important;
+}
+
+.dark .btn-dark {
+  background-color: #fafafa !important;
+  color: #18181b !important;
+}
+
+/* --- فرم‌ها --- */
+.dark .field,
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #18181b !important;
+  border-color: #3f3f46 !important;
+  color: #fafafa !important;
+}
+.dark .field::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #52525b !important;
+}
+
+/* --- چیپ‌ها --- */
+.dark .chip {
+  background-color: #18181b !important;
+  border-color: #3f3f46 !important;
+  color: #a1a1aa !important;
+}
+
+/* --- فوتر --- */
+.dark footer {
+  border-color: #27272a !important;
+}
+.dark footer .bg-ink-950 {
+  background-color: #000000 !important;
+}
+.dark footer a:hover {
+  color: #deb75c !important;
+}
+
+/* --- کارت‌های محصول و دسته‌بندی --- */
+.dark .hover\:shadow-\[0_22px_45px_-26px_rgba\(120\,84\,39\,0\.4\)\]:hover {
+  box-shadow: 0 22px 45px -26px rgba(207, 163, 56, 0.2) !important;
+}
+
+/* --- جدول ادمین --- */
+.dark thead,
+.dark thead tr,
+.dark th {
+  background-color: #18181b !important;
+  color: #a1a1aa !important;
+  border-color: #27272a !important;
+}
+.dark tbody tr {
+  background-color: #09090b !important;
+  border-color: #18181b !important;
+}
+.dark tbody tr:nth-child(even) {
+  background-color: #18181b !important;
+}
+.dark tbody tr:hover {
+  background-color: #27272a !important;
+}
+.dark tbody td {
+  color: #e4e4e7 !important;
+  border-color: #27272a !important;
+}
+.dark tbody td .tnum {
+  color: #deb75c !important;
+}
+
+/* ============================================ */
+/* ============== COMPONENTS ================== */
+/* ============================================ */
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-gold-400 focus:ring-4 focus:ring-gold-500/15;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-extrabold text-zinc-600;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gold-500 px-6 py-3 text-sm font-extrabold text-zinc-950 shadow-[0_14px_30px_-12px_rgba(207,163,56,0.75)] transition hover:bg-gold-400 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-6 py-3 text-sm font-bold text-zinc-800 transition hover:border-gold-400 hover:text-gold-700 active:scale-[0.98];
+  }
+
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink-950 px-6 py-3 text-sm font-extrabold text-white transition hover:bg-zinc-800 active:scale-[0.98];
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] font-bold text-zinc-600;
+  }
+
+  .admin-th {
+    @apply px-4 py-3 text-start text-[11px] font-extrabold tracking-wide text-zinc-500;
+  }
+
+  .admin-td {
+    @apply px-4 py-3 align-middle text-sm text-zinc-700;
+  }
+}
