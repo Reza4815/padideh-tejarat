@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/site/header";
 import { ThemeToggle } from "@/components/site/theme-toggle";
+import { PaletteToggle } from "@/components/admin/palette-toggle"; // ← اضافه شد
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -74,7 +75,9 @@ export function AdminShell({
           <Logo />
         </div>
         {navContent}
-        <div className="border-t border-zinc-100 p-4 dark:border-zinc-800">
+        <div className="space-y-2 border-t border-zinc-100 p-4 dark:border-zinc-800">
+          {/* دکمه پالت — فقط تو پنل ادمین */}
+          <PaletteToggle />
           <a
             href="/api/admin/logout"
             className="flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-extrabold text-zinc-500 transition hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950/40 dark:hover:text-red-400"
@@ -116,7 +119,9 @@ export function AdminShell({
             </button>
           </div>
           {navContent}
-          <div className="border-t border-zinc-100 p-4 dark:border-zinc-800">
+          <div className="space-y-2 border-t border-zinc-100 p-4 dark:border-zinc-800">
+            {/* دکمه پالت — نسخه موبایل */}
+            <PaletteToggle />
             <a
               href="/api/admin/logout"
               className="flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-extrabold text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950/40 dark:hover:text-red-400"

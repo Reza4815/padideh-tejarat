@@ -32,7 +32,26 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fa" dir="rtl" className={vazirmatn.variable}>
+    <html
+      lang="fa"
+      dir="rtl"
+      className={vazirmatn.variable}
+      data-palette="gold"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{
+              var t=localStorage.getItem('theme');
+              var p=window.matchMedia('(prefers-color-scheme: dark)').matches;
+              if(t==='dark'||(!t&&p)){document.documentElement.classList.add('dark');}
+              var pal=localStorage.getItem('palette');
+              if(pal==='blue'){document.documentElement.setAttribute('data-palette','blue');}
+            }catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-white font-sans text-zinc-700 antialiased">
         {children}
       </body>

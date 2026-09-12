@@ -6,6 +6,7 @@
     var(--font-vazir), "Vazirmatn", ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Tahoma, sans-serif;
 
+  /* 🎨 طلایی — پیش‌فرض */
   --color-gold-50: #fdfaf3;
   --color-gold-100: #faf3e0;
   --color-gold-200: #f4e6bd;
@@ -22,6 +23,21 @@
   --animate-marquee: marquee 46s linear infinite;
   --animate-float: float 7s ease-in-out infinite;
   --animate-spin-slow: spin 16s linear infinite;
+}
+
+/* 🎨 پالت آبی — وقتی data-palette="blue" */
+[data-palette="blue"] {
+  --color-gold-50: #eff6ff;
+  --color-gold-100: #dbeafe;
+  --color-gold-200: #bfdbfe;
+  --color-gold-300: #93c5fd;
+  --color-gold-400: #60a5fa;
+  --color-gold-500: #3b82f6;
+  --color-gold-600: #2563eb;
+  --color-gold-700: #1d4ed8;
+  --color-gold-800: #1e40af;
+  --color-gold-900: #1e3a8a;
+  --color-ink-950: #0a0a0a;
 }
 
 @keyframes marquee {
@@ -68,6 +84,14 @@ body {
   background: #b5872c;
   color: #fdfaf3;
 }
+[data-palette="blue"] ::selection {
+  background: #bfdbfe;
+  color: #0a0a0a;
+}
+[data-palette="blue"].dark ::selection {
+  background: #2563eb;
+  color: #eff6ff;
+}
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -96,11 +120,25 @@ body {
   background: #cfa338;
 }
 
+[data-palette="blue"] ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-color: #f8fafc;
+}
+[data-palette="blue"] ::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+[data-palette="blue"].dark ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-color: #18181b;
+}
+[data-palette="blue"].dark ::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- reveal-on-scroll motion ---------- */
 .reveal {
   opacity: 0;
   transform: translateY(26px);
@@ -126,7 +164,6 @@ body {
   }
 }
 
-/* ---------- luxury helpers ---------- */
 .bg-gold-radial {
   background-image:
     radial-gradient(
@@ -150,6 +187,32 @@ body {
     radial-gradient(
       48rem 28rem at -8% 108%,
       rgba(207, 163, 56, 0.06),
+      transparent 55%
+    );
+}
+[data-palette="blue"] .bg-gold-radial {
+  background-image:
+    radial-gradient(
+      60rem 32rem at 88% -12%,
+      rgba(59, 130, 246, 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      48rem 28rem at -8% 108%,
+      rgba(59, 130, 246, 0.12),
+      transparent 55%
+    );
+}
+[data-palette="blue"].dark .bg-gold-radial {
+  background-image:
+    radial-gradient(
+      60rem 32rem at 88% -12%,
+      rgba(59, 130, 246, 0.1),
+      transparent 60%
+    ),
+    radial-gradient(
+      48rem 28rem at -8% 108%,
+      rgba(59, 130, 246, 0.08),
       transparent 55%
     );
 }
@@ -180,11 +243,28 @@ body {
   background-clip: text;
   color: transparent;
 }
+[data-palette="blue"] .text-gold-gradient {
+  background: linear-gradient(120deg, #1e40af 0%, #60a5fa 45%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+[data-palette="blue"].dark .text-gold-gradient {
+  background: linear-gradient(120deg, #60a5fa 0%, #bfdbfe 45%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
 .gold-ring {
   box-shadow:
     0 0 0 1px rgba(207, 163, 56, 0.35),
     0 28px 64px -32px rgba(120, 84, 39, 0.45);
+}
+[data-palette="blue"] .gold-ring {
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.35),
+    0 28px 64px -32px rgba(30, 64, 175, 0.45);
 }
 
 .scrollbar-none::-webkit-scrollbar {
@@ -208,13 +288,11 @@ input[type="number"] {
 /* ============ DARK MODE OVERRIDES =========== */
 /* ============================================ */
 
-/* --- عمومی --- */
 .dark body {
   background-color: #0a0a0f !important;
   color: #e4e4e7 !important;
 }
 
-/* --- کارت‌ها و پس‌زمینه‌ها --- */
 .dark .bg-white,
 .dark [class*="bg-white/"] {
   background-color: #18181b !important;
@@ -227,24 +305,17 @@ input[type="number"] {
   background-color: #18181b !important;
 }
 
-/* بخش طوسی روشن (چرا پدیده تجارت الوند) */
 .dark section.bg-gold-50\/40,
 .dark section[class*="bg-gold-50"],
 .dark div[class*="bg-gold-50"] {
   background-color: #18181b !important;
 }
 
-/* ============================================ */
-/* گرادیان‌ها - فقط فوتر و بنر عمده‌فروشی       */
-/* ============================================ */
-
-/* فوتر گرادیانی */
 .dark footer.bg-gradient-to-b,
 .dark footer[class*="bg-gradient-to-b"] {
   background-image: linear-gradient(to bottom, #18181b, #09090b) !important;
 }
 
-/* بنر عمده‌فروشی (داخل section#wholesale) */
 .dark #wholesale .bg-gradient-to-br,
 .dark #wholesale [class*="bg-gradient-to-br"] {
   background-image: linear-gradient(
@@ -254,15 +325,17 @@ input[type="number"] {
   ) !important;
 }
 
-/* محافظت از گرادیان طلایی لوگو */
 .dark [class*="from-gold-300"] {
   --tw-gradient-from: #ead18c !important;
   --tw-gradient-via: #cfa338 !important;
   --tw-gradient-to: #91682a !important;
 }
+[data-palette="blue"].dark [class*="from-gold-300"] {
+  --tw-gradient-from: #60a5fa !important;
+  --tw-gradient-via: #3b82f6 !important;
+  --tw-gradient-to: #1e40af !important;
+}
 
-/* ============================================ */
-/* --- بوردرها --- */
 .dark .border,
 .dark [class*="border-zinc-100"],
 .dark [class*="border-zinc-200"],
@@ -275,7 +348,6 @@ input[type="number"] {
   border-color: #3f3f46 !important;
 }
 
-/* --- متن‌ها --- */
 .dark .text-ink-950,
 .dark .text-zinc-900,
 .dark .text-zinc-800,
@@ -301,8 +373,12 @@ input[type="number"] {
 .dark .text-gold-800 {
   color: #deb75c !important;
 }
+[data-palette="blue"].dark .text-gold-600,
+[data-palette="blue"].dark .text-gold-700,
+[data-palette="blue"].dark .text-gold-800 {
+  color: #60a5fa !important;
+}
 
-/* --- دکمه‌ها --- */
 .dark .btn-outline {
   background-color: #18181b !important;
   border-color: #3f3f46 !important;
@@ -312,13 +388,16 @@ input[type="number"] {
   border-color: #deb75c !important;
   color: #deb75c !important;
 }
+[data-palette="blue"].dark .btn-outline:hover {
+  border-color: #60a5fa !important;
+  color: #60a5fa !important;
+}
 
 .dark .btn-dark {
   background-color: #fafafa !important;
   color: #18181b !important;
 }
 
-/* --- فرم‌ها --- */
 .dark .field,
 .dark input,
 .dark textarea,
@@ -333,14 +412,12 @@ input[type="number"] {
   color: #52525b !important;
 }
 
-/* --- چیپ‌ها --- */
 .dark .chip {
   background-color: #18181b !important;
   border-color: #3f3f46 !important;
   color: #a1a1aa !important;
 }
 
-/* --- فوتر --- */
 .dark footer {
   border-color: #27272a !important;
 }
@@ -350,13 +427,10 @@ input[type="number"] {
 .dark footer a:hover {
   color: #deb75c !important;
 }
-
-/* --- کارت‌های محصول و دسته‌بندی --- */
-.dark .hover\:shadow-\[0_22px_45px_-26px_rgba\(120\,84\,39\,0\.4\)\]:hover {
-  box-shadow: 0 22px 45px -26px rgba(207, 163, 56, 0.2) !important;
+[data-palette="blue"].dark footer a:hover {
+  color: #60a5fa !important;
 }
 
-/* --- جدول ادمین --- */
 .dark thead,
 .dark thead tr,
 .dark th {
@@ -381,10 +455,9 @@ input[type="number"] {
 .dark tbody td .tnum {
   color: #deb75c !important;
 }
-
-/* ============================================ */
-/* ============== COMPONENTS ================== */
-/* ============================================ */
+[data-palette="blue"].dark tbody td .tnum {
+  color: #60a5fa !important;
+}
 
 @layer components {
   .container-x {
@@ -419,7 +492,6 @@ input[type="number"] {
   .admin-th {
     @apply px-4 py-3 text-start text-[11px] font-extrabold tracking-wide text-zinc-500;
   }
-
   .admin-td {
     @apply px-4 py-3 align-middle text-sm text-zinc-700;
   }
