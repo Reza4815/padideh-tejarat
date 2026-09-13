@@ -75,10 +75,10 @@ export function HeroSection({ content }: { content: HeroContent }) {
   return (
     <section className="relative overflow-hidden bg-white bg-gold-radial">
       <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(60%_60%_at_50%_30%,black,transparent)]" />
-      <div className="container-x relative grid items-center gap-12 py-12 sm:py-16 lg:grid-cols-2 lg:gap-8 lg:py-24">
+      <div className="container-x relative grid items-center gap-8 py-8 sm:gap-12 sm:py-12 md:py-16 lg:grid-cols-2 lg:gap-8 lg:py-20">
         <div>
           <Reveal>
-            <span className="inline-flex items-center gap-2 rounded-full border border-gold-200 bg-white/80 px-4 py-1.5 text-[11px] font-extrabold text-gold-700 shadow-sm backdrop-blur">
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold-200 bg-white/80 px-3 py-1 text-[10px] font-extrabold text-gold-700 shadow-sm backdrop-blur sm:px-4 sm:py-1.5 sm:text-[11px]">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-gold-500" />
@@ -88,7 +88,7 @@ export function HeroSection({ content }: { content: HeroContent }) {
           </Reveal>
 
           <Reveal delay={100}>
-            <h1 className="mt-6 text-[2rem] font-black leading-[1.3] tracking-tight text-ink-950 sm:text-5xl sm:leading-[1.25] lg:text-[3.4rem]">
+            <h1 className="mt-4 text-[1.5rem] font-black leading-[1.3] tracking-tight text-ink-950 sm:mt-6 sm:text-4xl sm:leading-[1.25] lg:text-[3rem]">
               {content.title}{" "}
               <span className="text-gold-gradient">{content.highlight}</span>
               {content.titleAfter ? ` ${content.titleAfter}` : ""}
@@ -96,31 +96,37 @@ export function HeroSection({ content }: { content: HeroContent }) {
           </Reveal>
 
           <Reveal delay={180}>
-            <p className="mt-5 max-w-xl text-sm leading-8 text-zinc-500 sm:text-[15px]">
+            <p className="mt-3 max-w-xl text-[13px] leading-7 text-zinc-500 sm:mt-5 sm:text-sm sm:leading-8 lg:text-[15px]">
               {content.subtitle}
             </p>
           </Reveal>
 
           <Reveal delay={260}>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href={content.primaryCta.href} className="btn-gold">
+            <div className="mt-5 flex flex-wrap items-center gap-2 sm:mt-8 sm:gap-3">
+              <Link
+                href={content.primaryCta.href}
+                className="btn-gold px-4 py-2 text-xs sm:px-6 sm:py-2.5 sm:text-sm"
+              >
                 {content.primaryCta.label}
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Link>
-              <Link href={content.secondaryCta.href} className="btn-outline">
+              <Link
+                href={content.secondaryCta.href}
+                className="btn-outline px-4 py-2 text-xs sm:px-6 sm:py-2.5 sm:text-sm"
+              >
                 {content.secondaryCta.label}
               </Link>
             </div>
           </Reveal>
 
           <Reveal delay={340}>
-            <div className="mt-10 flex items-center gap-8 border-t border-zinc-100 pt-7 sm:gap-12">
+            <div className="mt-6 flex items-center gap-5 border-t border-zinc-100 pt-4 sm:mt-10 sm:gap-12 sm:pt-7">
               {content.stats.map((s) => (
                 <div key={s.label}>
-                  <p className="text-2xl font-black text-ink-950 tnum sm:text-3xl">
+                  <p className="text-xl font-black text-ink-950 tnum sm:text-2xl lg:text-3xl">
                     {s.value}
                   </p>
-                  <p className="mt-1 text-[11px] font-bold text-zinc-400">
+                  <p className="mt-1 text-[10px] font-bold text-zinc-400 sm:text-[11px]">
                     {s.label}
                   </p>
                 </div>
@@ -130,39 +136,41 @@ export function HeroSection({ content }: { content: HeroContent }) {
         </div>
 
         <Reveal delay={200} className="relative">
-          <div className="relative mx-auto max-w-xl">
-            <div className="animate-spin-slow absolute -top-10 -left-6 h-36 w-36 rounded-full border-2 border-dashed border-gold-200 sm:h-44 sm:w-44" />
-            <div className="absolute -inset-3 rounded-[2.5rem] border border-gold-200/70" />
+          <div className="relative mx-auto max-w-xs sm:max-w-md lg:max-w-xl">
+            <div className="animate-spin-slow absolute -top-6 -left-4 h-24 w-24 rounded-full border-2 border-dashed border-gold-200 sm:-top-10 sm:-left-6 sm:h-36 sm:w-36 lg:h-44 lg:w-44" />
+            <div className="absolute -inset-2 rounded-[1.5rem] border border-gold-200/70 sm:-inset-3 sm:rounded-[2.5rem]" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={content.image}
               alt="پدیده تجارت الوند — قطعات یدکی اصلی خودرو"
-              className="gold-ring relative aspect-[4/3] w-full rounded-[2rem] object-cover"
+              className="gold-ring relative aspect-[4/3] w-full rounded-[1.25rem] object-cover sm:rounded-[2rem]"
             />
 
-            <div className="animate-float absolute -right-3 top-8 flex items-center gap-3 rounded-2xl border border-gold-100 bg-white/90 p-3.5 shadow-[0_20px_45px_-20px_rgba(120,84,39,0.4)] backdrop-blur sm:-right-8">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gold-500 text-zinc-950">
-                <ShieldCheck className="h-5 w-5" />
+            {/* کارت شناور ۱ */}
+            <div className="animate-float absolute -right-2 top-4 flex items-center gap-2 rounded-xl border border-gold-100 bg-white/90 p-2 shadow-[0_20px_45px_-20px_rgba(120,84,39,0.4)] backdrop-blur sm:-right-8 sm:top-8 sm:gap-3 sm:rounded-2xl sm:p-3.5">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gold-500 text-zinc-950 sm:h-10 sm:w-10 sm:rounded-xl">
+                <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
               <span>
-                <span className="block text-[13px] font-black text-ink-950">
+                <span className="block text-[10px] font-black text-ink-950 sm:text-[13px]">
                   {content.floatCard1.title}
                 </span>
-                <span className="block text-[10px] font-bold text-zinc-400">
+                <span className="block text-[8px] font-bold text-zinc-400 sm:text-[10px]">
                   {content.floatCard1.desc}
                 </span>
               </span>
             </div>
 
-            <div className="animate-float absolute -left-3 bottom-10 flex items-center gap-3 rounded-2xl border border-gold-100 bg-white/90 p-3.5 shadow-[0_20px_45px_-20px_rgba(120,84,39,0.4)] backdrop-blur [animation-delay:1.2s] sm:-left-8">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink-950 text-gold-400">
-                <Truck className="h-5 w-5" />
+            {/* کارت شناور ۲ */}
+            <div className="animate-float absolute -left-2 bottom-6 flex items-center gap-2 rounded-xl border border-gold-100 bg-white/90 p-2 shadow-[0_20px_45px_-20px_rgba(120,84,39,0.4)] backdrop-blur [animation-delay:1.2s] sm:-left-8 sm:bottom-10 sm:gap-3 sm:rounded-2xl sm:p-3.5">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-ink-950 text-gold-400 sm:h-10 sm:w-10 sm:rounded-xl">
+                <Truck className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
               <span>
-                <span className="block text-[13px] font-black text-ink-950">
+                <span className="block text-[10px] font-black text-ink-950 sm:text-[13px]">
                   {content.floatCard2.title}
                 </span>
-                <span className="block text-[10px] font-bold text-zinc-400">
+                <span className="block text-[8px] font-bold text-zinc-400 sm:text-[10px]">
                   {content.floatCard2.desc}
                 </span>
               </span>
@@ -173,7 +181,6 @@ export function HeroSection({ content }: { content: HeroContent }) {
     </section>
   );
 }
-
 /* --------------------------------- marquee --------------------------------- */
 
 const BRANDS = [
