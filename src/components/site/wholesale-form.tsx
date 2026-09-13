@@ -157,7 +157,7 @@ export function WholesaleForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="btn-gold w-full py-3.5"
+          className="btn-gold w-full px-4 py-3 text-sm sm:px-6 sm:py-3.5"
         >
           {status === "sending" ? (
             <Loader2 className="h-4 w-4 animate-spin" />

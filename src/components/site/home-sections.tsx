@@ -417,7 +417,7 @@ export function WholesaleSection({ content }: { content: WholesaleContent }) {
           <div className="absolute inset-x-8 -top-px h-px bg-gradient-to-l from-transparent via-gold-400/60 to-transparent" />
 
           {/* باکس اصلی */}
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-gold-200 bg-gradient-to-br from-gold-100 via-gold-50 to-white p-6 shadow-[0_30px_80px_-40px_rgba(207,163,56,0.4)] transition-all duration-500 sm:p-10 lg:p-14 dark:border-orange-500/20 dark:from-zinc-950 dark:via-orange-950/25 dark:to-zinc-950 dark:shadow-[0_30px_80px_-40px_rgba(249,115,22,0.25)]">
+          <div className="relative overflow-hidden rounded-[2rem] border border-gold-200 bg-gradient-to-br from-gold-100 via-gold-50 to-white p-4 sm:rounded-[2.5rem] sm:p-10 lg:p-14 dark:border-gold-700/40 dark:from-zinc-900 dark:via-zinc-900/80 dark:to-zinc-900">
             {/* الگوی نقطه‌ای */}
             <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(50%_50%_at_85%_15%,black,transparent)] dark:opacity-60" />
 
@@ -458,7 +458,7 @@ export function WholesaleSection({ content }: { content: WholesaleContent }) {
               </div>
 
               <Reveal delay={120}>
-                <div className="rounded-[1.75rem] border border-white bg-white/90 p-5 shadow-[0_35px_70px_-35px_rgba(120,84,39,0.5)] backdrop-blur sm:p-7 dark:border-zinc-800 dark:bg-zinc-900/80 dark:shadow-[0_35px_70px_-35px_rgba(249,115,22,0.3)]">
+                <div className="rounded-2xl border border-white bg-white/90 p-4 shadow-[0_35px_70px_-35px_rgba(120,84,39,0.5)] backdrop-blur sm:rounded-[1.75rem] sm:p-7 dark:border-zinc-700 dark:bg-zinc-900/90">
                   <WholesaleForm />
                 </div>
               </Reveal>
