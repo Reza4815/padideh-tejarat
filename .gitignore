@@ -7,3 +7,4 @@ uploads
 "*.sqlite"
 .DS_Store
 README.md
+bundle.txt

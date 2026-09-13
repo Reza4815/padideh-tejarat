@@ -59,6 +59,55 @@ export type WholesaleContent = {
   bullets: string[];
 };
 
+/* --------------------------- NEW: slider content --------------------------- */
+
+export type SlideItem = {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  link: string;
+  cta: string;
+};
+
+export type SliderContent = {
+  slides: SlideItem[];
+};
+
+export const DEFAULT_SLIDER: SliderContent = {
+  slides: [
+    {
+      id: "1",
+      title: "قطعات موتور و انتقال قدرت",
+      subtitle: "اورجینال و با ضمانت اصالت کالا",
+      image:
+        "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80",
+      link: "/products",
+      cta: "مشاهده محصولات",
+    },
+    {
+      id: "2",
+      title: "سیستم ترمز و تعلیق",
+      subtitle: "ایمنی خودروی شما، اولویت ما",
+      image:
+        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=80",
+      link: "/products",
+      cta: "مشاهده محصولات",
+    },
+    {
+      id: "3",
+      title: "برق و الکترونیک خودرو",
+      subtitle: "برندهای معتبر جهانی با گارانتی",
+      image:
+        "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&q=80",
+      link: "/products",
+      cta: "مشاهده محصولات",
+    },
+  ],
+};
+
+/* -------------------------------------------------------------------------- */
+
 export const DEFAULT_HERO: HeroContent = {
   badge: "تامین‌کننده تخصصی قطعات یدکی خودرو",
   title: "قطعات یدکی اصلی،",
@@ -148,7 +197,8 @@ export const DEFAULT_FAQ: FaqItem[] = [
 
 export const DEFAULT_CONTACT: ContactContent = {
   heading: "در تماس باشیم",
-  address: "تهران، جاده قدیم قم، بازار بزرگ قطعات یدکی خودرو (چراغ‌برق)، پلاک ۱۲۸",
+  address:
+    "تهران، جاده قدیم قم، بازار بزرگ قطعات یدکی خودرو (چراغ‌برق)، پلاک ۱۲۸",
   phones: ["۰۲۱-۳۳۹۰۱۲۳۴", "۰۹۱۲۳۴۵۶۷۸۹"],
   email: "info@ptalvand.ir",
   hours: "شنبه تا پنجشنبه | ۸:۳۰ تا ۱۸:۰۰",
@@ -176,6 +226,7 @@ export const DEFAULT_WHOLESALE: WholesaleContent = {
 
 export type ContentMap = {
   hero: HeroContent;
+  slider: SliderContent;
   features: FeaturesContent;
   about: AboutContent;
   faq: FaqItem[];
@@ -186,6 +237,7 @@ export type ContentMap = {
 
 export const CONTENT_DEFAULTS: ContentMap = {
   hero: DEFAULT_HERO,
+  slider: DEFAULT_SLIDER,
   features: DEFAULT_FEATURES,
   about: DEFAULT_ABOUT,
   faq: DEFAULT_FAQ,
@@ -196,7 +248,9 @@ export const CONTENT_DEFAULTS: ContentMap = {
 
 export type ContentKey = keyof ContentMap;
 
-export async function getSiteContent<K extends ContentKey>(key: K): Promise<ContentMap[K]> {
+export async function getSiteContent<K extends ContentKey>(
+  key: K,
+): Promise<ContentMap[K]> {
   const def = CONTENT_DEFAULTS[key];
   try {
     const [row] = await db
@@ -218,6 +272,8 @@ export async function getSiteContent<K extends ContentKey>(key: K): Promise<Cont
 
 export async function getAllSiteContent(): Promise<ContentMap> {
   const keys = Object.keys(CONTENT_DEFAULTS) as ContentKey[];
-  const entries = await Promise.all(keys.map(async (k) => [k, await getSiteContent(k)] as const));
+  const entries = await Promise.all(
+    keys.map(async (k) => [k, await getSiteContent(k)] as const),
+  );
   return Object.fromEntries(entries) as ContentMap;
 }
