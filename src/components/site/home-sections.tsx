@@ -71,89 +71,104 @@ export function SectionHead({
 
 /* ---------------------------------- hero ----------------------------------- */
 
-export function HeroSection({
-  content,
-  sliderContent,
-}: {
-  content: HeroContent;
-  sliderContent: React.ReactNode;
-}) {
+export function HeroSection({ content }: { content: HeroContent }) {
   return (
     <section className="relative overflow-hidden bg-white bg-gold-radial">
       <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(60%_60%_at_50%_30%,black,transparent)]" />
-      <div className="container-x relative py-10 sm:py-14 lg:py-20">
-        <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* ستون اول: اسلایدر (در موبایل پایین، در دسکتاپ چپ) */}
-          <div className="order-2 lg:order-1">{sliderContent}</div>
-
-          {/* ستون دوم: متن (در موبایل بالا، در دسکتاپ راست) */}
-          <div className="order-1 lg:order-2 text-right">
-            <Reveal>
-              <span className="inline-flex items-center gap-2 rounded-full border border-gold-200 bg-white/80 px-4 py-1.5 text-[11px] font-extrabold text-gold-700 shadow-sm backdrop-blur">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-gold-500" />
-                </span>
-                {content.badge}
+      <div className="container-x relative grid items-center gap-12 py-12 sm:py-16 lg:grid-cols-2 lg:gap-8 lg:py-24">
+        <div>
+          <Reveal>
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold-200 bg-white/80 px-4 py-1.5 text-[11px] font-extrabold text-gold-700 shadow-sm backdrop-blur">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-gold-500" />
               </span>
-            </Reveal>
+              {content.badge}
+            </span>
+          </Reveal>
 
-            <Reveal delay={100}>
-              <h1 className="mt-6 text-[1.75rem] font-black leading-[1.3] tracking-tight text-ink-950 sm:text-4xl sm:leading-[1.25] lg:text-[2.75rem]">
-                {/* موبایل: دو خط */}
-                <span className="sm:hidden">
-                  {content.title}{" "}
-                  <span className="text-gold-gradient">
-                    {content.highlight}
-                  </span>
-                  <br />
-                  {content.titleAfter}
-                </span>
-                {/* دسکتاپ: یه خط */}
-                <span className="hidden sm:inline">
-                  {content.title}{" "}
-                  <span className="text-gold-gradient">
-                    {content.highlight}
-                  </span>{" "}
-                  {content.titleAfter}
-                </span>
-              </h1>
-            </Reveal>
+          <Reveal delay={100}>
+            <h1 className="mt-6 text-[2rem] font-black leading-[1.3] tracking-tight text-ink-950 sm:text-5xl sm:leading-[1.25] lg:text-[3.4rem]">
+              {content.title}{" "}
+              <span className="text-gold-gradient">{content.highlight}</span>
+              {content.titleAfter ? ` ${content.titleAfter}` : ""}
+            </h1>
+          </Reveal>
 
-            <Reveal delay={180}>
-              <p className="mt-5 max-w-xl text-sm leading-8 text-zinc-500 sm:text-[15px]">
-                {content.subtitle}
-              </p>
-            </Reveal>
+          <Reveal delay={180}>
+            <p className="mt-5 max-w-xl text-sm leading-8 text-zinc-500 sm:text-[15px]">
+              {content.subtitle}
+            </p>
+          </Reveal>
 
-            <Reveal delay={260}>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Link href={content.primaryCta.href} className="btn-gold">
-                  {content.primaryCta.label}
-                  <ArrowLeft className="h-4 w-4" />
-                </Link>
-                <Link href={content.secondaryCta.href} className="btn-outline">
-                  {content.secondaryCta.label}
-                </Link>
-              </div>
-            </Reveal>
+          <Reveal delay={260}>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href={content.primaryCta.href} className="btn-gold">
+                {content.primaryCta.label}
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+              <Link href={content.secondaryCta.href} className="btn-outline">
+                {content.secondaryCta.label}
+              </Link>
+            </div>
+          </Reveal>
 
-            <Reveal delay={340}>
-              <div className="mt-10 flex items-center gap-8 border-t border-zinc-100 pt-7 sm:gap-12">
-                {content.stats.map((s) => (
-                  <div key={s.label}>
-                    <p className="text-2xl font-black text-ink-950 tnum sm:text-3xl">
-                      {s.value}
-                    </p>
-                    <p className="mt-1 text-[11px] font-bold text-zinc-400">
-                      {s.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
+          <Reveal delay={340}>
+            <div className="mt-10 flex items-center gap-8 border-t border-zinc-100 pt-7 sm:gap-12">
+              {content.stats.map((s) => (
+                <div key={s.label}>
+                  <p className="text-2xl font-black text-ink-950 tnum sm:text-3xl">
+                    {s.value}
+                  </p>
+                  <p className="mt-1 text-[11px] font-bold text-zinc-400">
+                    {s.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
+
+        <Reveal delay={200} className="relative">
+          <div className="relative mx-auto max-w-xl">
+            <div className="animate-spin-slow absolute -top-10 -left-6 h-36 w-36 rounded-full border-2 border-dashed border-gold-200 sm:h-44 sm:w-44" />
+            <div className="absolute -inset-3 rounded-[2.5rem] border border-gold-200/70" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={content.image}
+              alt="پدیده تجارت الوند — قطعات یدکی اصلی خودرو"
+              className="gold-ring relative aspect-[4/3] w-full rounded-[2rem] object-cover"
+            />
+
+            <div className="animate-float absolute -right-3 top-8 flex items-center gap-3 rounded-2xl border border-gold-100 bg-white/90 p-3.5 shadow-[0_20px_45px_-20px_rgba(120,84,39,0.4)] backdrop-blur sm:-right-8">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gold-500 text-zinc-950">
+                <ShieldCheck className="h-5 w-5" />
+              </span>
+              <span>
+                <span className="block text-[13px] font-black text-ink-950">
+                  {content.floatCard1.title}
+                </span>
+                <span className="block text-[10px] font-bold text-zinc-400">
+                  {content.floatCard1.desc}
+                </span>
+              </span>
+            </div>
+
+            <div className="animate-float absolute -left-3 bottom-10 flex items-center gap-3 rounded-2xl border border-gold-100 bg-white/90 p-3.5 shadow-[0_20px_45px_-20px_rgba(120,84,39,0.4)] backdrop-blur [animation-delay:1.2s] sm:-left-8">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink-950 text-gold-400">
+                <Truck className="h-5 w-5" />
+              </span>
+              <span>
+                <span className="block text-[13px] font-black text-ink-950">
+                  {content.floatCard2.title}
+                </span>
+                <span className="block text-[10px] font-bold text-zinc-400">
+                  {content.floatCard2.desc}
+                </span>
+              </span>
+            </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
