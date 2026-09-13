@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Building2, CheckCircle2, Loader2, MessageSquareText, Package, Phone, Send, User } from "lucide-react";
+import {
+  Building2,
+  CheckCircle2,
+  Loader2,
+  MessageSquareText,
+  Package,
+  Phone,
+  Send,
+  User,
+} from "lucide-react";
 
 const PRODUCT_TYPES = [
   "سیستم ترمز",
@@ -14,7 +23,9 @@ const PRODUCT_TYPES = [
 ];
 
 export function WholesaleForm() {
-  const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">(
+    "idle",
+  );
   const [error, setError] = useState("");
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -59,10 +70,13 @@ export function WholesaleForm() {
         </span>
         <h3 className="text-lg font-black text-ink-950">درخواست شما ثبت شد</h3>
         <p className="max-w-sm text-sm leading-7 text-zinc-500">
-          کارشناسان فروش سازمانی پدیده تجارت الوند حداکثر تا ۲۴ ساعت آینده برای ارائه لیست قیمت
-          اختصاصی با شما تماس می‌گیرند.
+          کارشناسان فروش سازمانی پدیده تجارت الوند حداکثر تا ۲۴ ساعت آینده برای
+          ارائه لیست قیمت اختصاصی با شما تماس می‌گیرند.
         </p>
-        <button onClick={() => setStatus("idle")} className="btn-outline py-2.5 text-xs">
+        <button
+          onClick={() => setStatus("idle")}
+          className="btn-outline py-2.5 text-xs"
+        >
           ثبت درخواست جدید
         </button>
       </div>
@@ -75,19 +89,39 @@ export function WholesaleForm() {
     <form onSubmit={onSubmit} className="grid gap-3.5 sm:grid-cols-2">
       <div className="relative">
         <User className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-gold-500" />
-        <input name="name" required placeholder="نام و نام خانوادگی *" className={inputCls} />
+        <input
+          name="name"
+          required
+          placeholder="نام و نام خانوادگی *"
+          className={inputCls}
+        />
       </div>
       <div className="relative">
         <Building2 className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-gold-500" />
-        <input name="company" placeholder="نام شرکت / تعمیرگاه" className={inputCls} />
+        <input
+          name="company"
+          placeholder="نام شرکت / تعمیرگاه"
+          className={inputCls}
+        />
       </div>
       <div className="relative">
         <Phone className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-gold-500" />
-        <input name="phone" required placeholder="شماره تماس *" className={inputCls} dir="ltr" style={{ textAlign: "right" }} />
+        <input
+          name="phone"
+          required
+          placeholder="شماره تماس *"
+          className={inputCls}
+          dir="ltr"
+          style={{ textAlign: "right" }}
+        />
       </div>
       <div className="relative">
         <Package className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-gold-500" />
-        <select name="productType" className={`${inputCls} appearance-none`} defaultValue="">
+        <select
+          name="productType"
+          className={`${inputCls} appearance-none`}
+          defaultValue=""
+        >
           <option value="" disabled>
             نوع قطعات موردنیاز
           </option>
@@ -100,7 +134,11 @@ export function WholesaleForm() {
       </div>
       <div className="relative sm:col-span-2">
         <MessageSquareText className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-gold-500" />
-        <input name="quantity" placeholder="تعداد / حجم تقریبی سفارش (مثلاً ۵۰ عدد)" className={inputCls} />
+        <input
+          name="quantity"
+          placeholder="تعداد / حجم تقریبی سفارش (مثلاً ۵۰ عدد)"
+          className={inputCls}
+        />
       </div>
       <div className="sm:col-span-2">
         <textarea
@@ -111,10 +149,16 @@ export function WholesaleForm() {
         />
       </div>
       {status === "err" && (
-        <p className="rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 sm:col-span-2">{error}</p>
+        <p className="rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 sm:col-span-2">
+          {error}
+        </p>
       )}
       <div className="sm:col-span-2">
-        <button type="submit" disabled={status === "sending"} className="btn-gold w-full py-3.5">
+        <button
+          type="submit"
+          disabled={status === "sending"}
+          className="btn-gold w-full py-3.5"
+        >
           {status === "sending" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

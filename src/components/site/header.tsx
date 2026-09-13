@@ -51,6 +51,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
     </span>
   );
 }
+
 export function Header({ phone, hours }: { phone: string; hours: string }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -58,6 +59,7 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [hash, setHash] = useState("");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -71,12 +73,18 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
     setSearchOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const updateHash = () => setHash(window.location.hash);
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, [pathname]);
   return (
     <>
       <header className="sticky top-0 z-[60]">
         {/* top strip */}
-        <div className="border-b border-gold-100 bg-gold-50/80 backdrop-blur">
-          <div className="container-x flex h-8 items-center justify-between text-[11px] font-bold text-gold-800">
+        <div className="border-b border-gold-100 bg-gold-50/80 backdrop-blur dark:border-gold-900/40 dark:bg-zinc-950/90">
+          <div className="container-x flex h-8 items-center justify-between text-[11px] font-bold text-gold-800 dark:text-gold-300">
             <span className="flex items-center gap-1.5">
               <Phone className="h-3 w-3" />
               <span className="tnum">{phone}</span>
@@ -94,8 +102,9 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
         {/* main bar */}
         <div
           className={cn(
-            "border-b border-zinc-100 bg-white/85 backdrop-blur-xl transition-shadow",
-            scrolled && "shadow-[0_16px_40px_-24px_rgba(16,16,20,0.25)]",
+            "border-b border-zinc-100 bg-white/85 backdrop-blur-xl transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/85",
+            scrolled &&
+              "shadow-[0_16px_40px_-24px_rgba(16,16,20,0.25)] dark:shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]",
           )}
         >
           <div className="container-x flex h-16 items-center justify-between gap-3">
@@ -103,42 +112,86 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
               <Logo />
             </Link>
 
+            {/* دسکتاپ منو */}
             <nav className="hidden items-center gap-1 lg:flex">
               {NAV.map((item) => {
-                const active =
-                  item.href === "/products"
-                    ? pathname.startsWith("/products")
-                    : pathname === "/" && item.href === "/";
+                let active = false;
+                if (item.href === "/") {
+                  active = pathname === "/" && hash === "";
+                } else if (item.href === "/products") {
+                  active = pathname.startsWith("/products");
+                } else if (item.href.startsWith("/#")) {
+                  const targetHash = item.href.slice(1);
+                  active = pathname === "/" && hash === targetHash;
+                }
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={(e) => {
+                      // اگه لینک hash داره (#)
+                      if (item.href.startsWith("/#")) {
+                        const id = item.href.slice(2); // "wholesale"
+
+                        if (pathname === "/") {
+                          // توی صفحه اصلی هستی → فقط اسکرول کن
+                          e.preventDefault();
+                          const el = document.getElementById(id);
+                          if (el) {
+                            el.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            });
+                          }
+                        } else {
+                          // توی صفحه دیگه‌ای هستی → برو صفحه اصلی، بعد اسکرول کن
+                          e.preventDefault();
+                          router.push("/");
+                          setTimeout(() => {
+                            const el = document.getElementById(id);
+                            if (el) {
+                              el.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                              });
+                            }
+                          }, 400);
+                        }
+                      }
+                    }}
                     className={cn(
-                      "relative rounded-full px-4 py-2 text-[13px] font-bold text-zinc-600 transition hover:text-gold-700",
-                      active && "text-gold-700",
+                      "group relative rounded-full px-4 py-2 text-[13px] font-bold transition-colors duration-300",
+                      "text-zinc-700 hover:text-gold-600",
+                      "dark:text-zinc-200 dark:hover:text-gold-400",
+                      active && "text-gold-600 dark:text-gold-400",
                     )}
                   >
                     {item.label}
-                    {active && (
-                      <span className="absolute inset-x-4 -bottom-0.5 h-0.5 rounded-full bg-gold-500" />
-                    )}
+                    <span
+                      className={cn(
+                        "absolute bottom-0 right-1/2 h-[2px] rounded-full bg-gold-500",
+                        "translate-x-1/2 transition-all duration-300 ease-out",
+                        active
+                          ? "w-8 opacity-100"
+                          : "w-0 opacity-0 group-hover:w-8 group-hover:opacity-100",
+                      )}
+                    />
                   </Link>
                 );
               })}
             </nav>
-
             <div className="flex items-center gap-1.5">
               <ThemeToggle />
               <button
                 onClick={() => setSearchOpen(true)}
-                className="grid h-10 w-10 place-items-center rounded-full border border-zinc-200 text-zinc-700 transition hover:border-gold-400 hover:text-gold-700"
+                className="grid h-10 w-10 place-items-center rounded-full border border-zinc-200 text-zinc-700 transition hover:border-gold-400 hover:text-gold-700 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-gold-500 dark:hover:text-gold-400"
                 aria-label="جستجو"
               >
                 <Search className="h-4.5 w-4.5" />
               </button>
               <button
                 onClick={() => setOpen(true)}
-                className="relative grid h-10 w-10 place-items-center rounded-full bg-ink-950 text-white transition hover:bg-zinc-800"
+                className="relative grid h-10 w-10 place-items-center rounded-full bg-ink-950 text-white transition hover:bg-zinc-800 dark:bg-gold-500 dark:text-zinc-950 dark:hover:bg-gold-400"
                 aria-label="سبد خرید"
               >
                 <ShoppingBag className="h-4.5 w-4.5" />
@@ -150,7 +203,7 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
               </button>
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="grid h-10 w-10 place-items-center rounded-full border border-zinc-200 text-zinc-700 transition hover:border-gold-400 lg:hidden"
+                className="grid h-10 w-10 place-items-center rounded-full border border-zinc-200 text-zinc-700 transition hover:border-gold-400 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-gold-500 lg:hidden"
                 aria-label="منو"
               >
                 {menuOpen ? (
@@ -165,7 +218,7 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
           {/* mobile menu */}
           <div
             className={cn(
-              "overflow-hidden border-zinc-100 transition-all duration-500 lg:hidden",
+              "overflow-hidden border-zinc-100 transition-all duration-500 dark:border-zinc-800 lg:hidden",
               menuOpen ? "max-h-96 border-t" : "max-h-0",
             )}
           >
@@ -175,7 +228,7 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-zinc-700 transition hover:bg-gold-50 hover:text-gold-700"
+                  className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-zinc-700 transition hover:bg-gold-50 hover:text-gold-700 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-gold-400"
                 >
                   {item.label}
                   <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
@@ -231,18 +284,18 @@ function SearchOverlay({
       )}
     >
       <div
-        className="absolute inset-0 bg-white/95 backdrop-blur-xl"
+        className="absolute inset-0 bg-white/95 backdrop-blur-xl dark:bg-zinc-950/95"
         onClick={onClose}
       />
       <div className="container-x relative pt-24 sm:pt-32">
         <button
           onClick={onClose}
-          className="absolute left-4 top-8 grid h-11 w-11 place-items-center rounded-full border border-zinc-200 text-zinc-600 transition hover:border-gold-400 hover:text-gold-700 sm:left-8"
+          className="absolute left-4 top-8 grid h-11 w-11 place-items-center rounded-full border border-zinc-200 text-zinc-600 transition hover:border-gold-400 hover:text-gold-700 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-gold-500 dark:hover:text-gold-400 sm:left-8"
           aria-label="بستن جستجو"
         >
           <X className="h-5 w-5" />
         </button>
-        <p className="mb-4 text-xs font-extrabold tracking-wide text-gold-600">
+        <p className="mb-4 text-xs font-extrabold tracking-wide text-gold-600 dark:text-gold-400">
           جستجو در فروشگاه
         </p>
         <form
@@ -250,7 +303,7 @@ function SearchOverlay({
             e.preventDefault();
             onSubmit(q.trim());
           }}
-          className="flex items-center gap-3 border-b-2 border-ink-950 pb-4"
+          className="flex items-center gap-3 border-b-2 border-ink-950 pb-4 dark:border-zinc-100"
         >
           <Search className="h-6 w-6 shrink-0 text-gold-500" />
           <input
@@ -258,7 +311,7 @@ function SearchOverlay({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="نام قطعه، برند یا کد OEM ..."
-            className="w-full bg-transparent text-xl font-extrabold text-ink-950 outline-none placeholder:text-zinc-300 sm:text-3xl"
+            className="w-full bg-transparent text-xl font-extrabold text-ink-950 outline-none placeholder:text-zinc-300 dark:text-zinc-100 dark:placeholder:text-zinc-600 sm:text-3xl"
           />
         </form>
         <div className="mt-6 flex flex-wrap gap-2">
@@ -273,7 +326,7 @@ function SearchOverlay({
             <button
               key={s}
               onClick={() => onSubmit(s)}
-              className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 transition hover:border-gold-400 hover:text-gold-700"
+              className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 transition hover:border-gold-400 hover:text-gold-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-gold-500 dark:hover:text-gold-400"
             >
               {s}
             </button>

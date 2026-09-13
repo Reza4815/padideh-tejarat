@@ -54,8 +54,9 @@ export function CartView() {
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
   // گرفتن محصولات پیشنهادی
+
   useEffect(() => {
-    if (!ready || items.length === 0 || items.length > 2) {
+    if (!ready) {
       setSuggested([]);
       return;
     }
@@ -244,7 +245,7 @@ export function CartView() {
     );
   }
 
-  const showSuggestions = suggested.length > 0 && items.length <= 2;
+  const showSuggestions = suggested.length > 0;
 
   // کامپوننت پیشنهادات
   const SuggestionsBlock = (
@@ -448,7 +449,7 @@ export function CartView() {
             سبد خرید
           </p>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-ink-950 sm:text-3xl dark:text-zinc-100">
-            بازبینی سفارش
+            سفارش ها:
           </h1>
         </div>
         <span className="rounded-full bg-zinc-100 px-4 py-1.5 text-xs font-bold text-zinc-600 transition-all duration-300 dark:bg-zinc-800 dark:text-zinc-300">
@@ -684,7 +685,7 @@ export function CartView() {
                 />
                 <input
                   name="plateNumber"
-                  placeholder="پلاک خودرو (اختیاری)"
+                  placeholder="پلاک (اختیاری)"
                   className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                 />
               </div>

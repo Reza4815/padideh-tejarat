@@ -49,15 +49,21 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* ۱. هیرو */}
       <HeroSection content={hero} />
 
-      <div className="container-x mt-6 sm:mt-8">
-        <HeroSlider slides={slider.slides} />
-      </div>
-
+      {/* ۲. برندها */}
       <BrandMarquee />
 
-      <section className="pb-4 pt-10 sm:pb-8 sm:pt-14">
+      {/* ۳. اسلایدر (اینجا - زیر برندها) */}
+      <section className="py-8 sm:py-10">
+        <div className="container-x">
+          <HeroSlider slides={slider.slides} />
+        </div>
+      </section>
+
+      {/* ۴. محصولات ویژه */}
+      <section className="pb-4 pt-4 sm:pb-8 sm:pt-6">
         <div className="container-x">
           <div className="flex items-end justify-between gap-4">
             <SectionHead
@@ -99,16 +105,14 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ۵. دسته‌بندی‌ها */}
       <CategoriesSection categories={categories} />
 
+      {/* ۶. بقیه */}
       <FeaturesSection content={features} />
-
       <AboutSection content={about} />
-
       <WholesaleSection content={wholesale} />
-
       <FaqSection items={faq} />
-
       <ContactSection content={contact} />
     </>
   );

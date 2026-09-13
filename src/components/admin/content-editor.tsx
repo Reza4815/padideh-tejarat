@@ -268,8 +268,10 @@ function SlidesEditor({
                 }
               />
             </F>
+
+            {/* عکس دسکتاپ */}
             <div className="sm:col-span-2">
-              <F label="تصویر اسلاید">
+              <F label="تصویر دسکتاپ (پهن — ۱۹۲۰×۸۰۰)">
                 <ImageField
                   value={s.image}
                   onChange={(v) =>
@@ -282,6 +284,23 @@ function SlidesEditor({
                 />
               </F>
             </div>
+
+            {/* عکس موبایل */}
+            <div className="sm:col-span-2">
+              <F label="تصویر موبایل (مربع — ۱۰۸۰×۱۰۸۰) — اختیاری">
+                <ImageField
+                  value={s.mobileImage || ""}
+                  onChange={(v) =>
+                    onChange(
+                      slides.map((x, xi) =>
+                        xi === i ? { ...x, mobileImage: v } : x,
+                      ),
+                    )
+                  }
+                />
+              </F>
+            </div>
+
             <F label="متن دکمه">
               <input
                 className="field"
@@ -322,6 +341,7 @@ function SlidesEditor({
               title: "عنوان اسلاید جدید",
               subtitle: "توضیح کوتاه",
               image: "",
+              mobileImage: "",
               link: "/products",
               cta: "مشاهده محصولات",
             },

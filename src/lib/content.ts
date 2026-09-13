@@ -59,13 +59,12 @@ export type WholesaleContent = {
   bullets: string[];
 };
 
-/* --------------------------- NEW: slider content --------------------------- */
-
 export type SlideItem = {
   id: string;
   title: string;
   subtitle: string;
   image: string;
+  mobileImage?: string;
   link: string;
   cta: string;
 };
@@ -82,6 +81,7 @@ export const DEFAULT_SLIDER: SliderContent = {
       subtitle: "اورجینال و با ضمانت اصالت کالا",
       image:
         "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80",
+      mobileImage: "",
       link: "/products",
       cta: "مشاهده محصولات",
     },
@@ -91,6 +91,7 @@ export const DEFAULT_SLIDER: SliderContent = {
       subtitle: "ایمنی خودروی شما، اولویت ما",
       image:
         "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=80",
+      mobileImage: "",
       link: "/products",
       cta: "مشاهده محصولات",
     },
@@ -100,13 +101,12 @@ export const DEFAULT_SLIDER: SliderContent = {
       subtitle: "برندهای معتبر جهانی با گارانتی",
       image:
         "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&q=80",
+      mobileImage: "",
       link: "/products",
       cta: "مشاهده محصولات",
     },
   ],
 };
-
-/* -------------------------------------------------------------------------- */
 
 export const DEFAULT_HERO: HeroContent = {
   badge: "تامین‌کننده تخصصی قطعات یدکی خودرو",
