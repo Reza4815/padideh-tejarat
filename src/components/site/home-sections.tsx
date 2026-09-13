@@ -417,9 +417,9 @@ export function WholesaleSection({ content }: { content: WholesaleContent }) {
           <div className="absolute inset-x-8 -top-px h-px bg-gradient-to-l from-transparent via-gold-400/60 to-transparent" />
 
           {/* باکس اصلی */}
-          <div className="relative overflow-hidden rounded-[2rem] border border-gold-200 bg-gradient-to-br from-gold-100 via-gold-50 to-white p-4 sm:rounded-[2.5rem] sm:p-10 lg:p-14 dark:border-gold-700/40 dark:from-zinc-900 dark:via-zinc-900/80 dark:to-zinc-900">
+          <div className="relative rounded-[2rem] border border-gold-200 bg-gradient-to-br from-gold-100 via-gold-50 to-white p-5 sm:rounded-[2.5rem] sm:p-10 lg:p-14 dark:border-gold-700/40 dark:from-zinc-900 dark:via-zinc-900/80 dark:to-zinc-900">
             {/* الگوی نقطه‌ای */}
-            <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(50%_50%_at_85%_15%,black,transparent)] dark:opacity-60" />
+            <div className="bg-dotgrid pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem] opacity-40 [mask-image:radial-gradient(50%_50%_at_85%_15%,black,transparent)] sm:rounded-[2.5rem] dark:opacity-60" />
 
             {/* گرادیانت درخشان گوشه بالا-راست */}
             <div className="pointer-events-none absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gold-400/20 blur-3xl dark:bg-orange-500/20" />

@@ -508,3 +508,6 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 6rem;
 }
+.btn-gold {
+  @apply inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-gold-400 to-gold-600 px-5 py-2.5 text-sm font-bold text-zinc-950 transition sm:px-6 sm:py-3;
+}

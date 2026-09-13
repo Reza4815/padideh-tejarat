@@ -5,6 +5,7 @@ import {
   Building2,
   CheckCircle2,
   Loader2,
+  MapPin,
   MessageSquareText,
   Package,
   Phone,
@@ -38,6 +39,7 @@ export function WholesaleForm() {
       name: String(fd.get("name") ?? ""),
       company: String(fd.get("company") ?? ""),
       phone: String(fd.get("phone") ?? ""),
+      address: String(fd.get("address") ?? ""),
       productType: String(fd.get("productType") ?? ""),
       quantity: String(fd.get("quantity") ?? ""),
       message: String(fd.get("message") ?? ""),
@@ -68,8 +70,10 @@ export function WholesaleForm() {
         <span className="grid h-16 w-16 place-items-center rounded-full bg-gold-100 text-gold-600">
           <CheckCircle2 className="h-8 w-8" />
         </span>
-        <h3 className="text-lg font-black text-ink-950">درخواست شما ثبت شد</h3>
-        <p className="max-w-sm text-sm leading-7 text-zinc-500">
+        <h3 className="text-lg font-black text-ink-950 dark:text-zinc-50">
+          درخواست شما ثبت شد
+        </h3>
+        <p className="max-w-sm text-sm leading-7 text-zinc-500 dark:text-zinc-400">
           کارشناسان فروش سازمانی پدیده تجارت الوند حداکثر تا ۲۴ ساعت آینده برای
           ارائه لیست قیمت اختصاصی با شما تماس می‌گیرند.
         </p>
@@ -83,7 +87,8 @@ export function WholesaleForm() {
     );
   }
 
-  const inputCls = "field pr-10";
+  const inputCls =
+    "field pr-10 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:placeholder:text-zinc-500";
 
   return (
     <form onSubmit={onSubmit} className="grid gap-3.5 sm:grid-cols-2">
@@ -132,6 +137,19 @@ export function WholesaleForm() {
           ))}
         </select>
       </div>
+
+      {/* فیلد آدرس - اجباری */}
+      <div className="relative sm:col-span-2">
+        <MapPin className="pointer-events-none absolute right-3.5 top-3.5 h-4 w-4 text-gold-500" />
+        <textarea
+          name="address"
+          required
+          rows={2}
+          placeholder="آدرس کامل (استان، شهر، خیابان، پلاک) *"
+          className="field resize-none pr-10 pt-3 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+        />
+      </div>
+
       <div className="relative sm:col-span-2">
         <MessageSquareText className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-gold-500" />
         <input
@@ -144,12 +162,12 @@ export function WholesaleForm() {
         <textarea
           name="message"
           rows={3}
-          placeholder="توضیحات (مدل خودرو، برند موردنظر، شهر مقصد و ...)"
-          className="field resize-none"
+          placeholder="توضیحات (مدل خودرو، برند موردنظر و ...)"
+          className="field resize-none dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:placeholder:text-zinc-500"
         />
       </div>
       {status === "err" && (
-        <p className="rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 sm:col-span-2">
+        <p className="rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 dark:bg-red-950/40 dark:text-red-400 sm:col-span-2">
           {error}
         </p>
       )}
@@ -157,7 +175,7 @@ export function WholesaleForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="btn-gold w-full px-4 py-3 text-sm sm:px-6 sm:py-3.5"
+          className="btn-gold w-full px-3 py-2.5 text-[12px] sm:px-6 sm:py-3.5 sm:text-sm"
         >
           {status === "sending" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
