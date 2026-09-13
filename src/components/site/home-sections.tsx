@@ -140,29 +140,33 @@ export function HeroSection({ content }: { content: HeroContent }) {
               className="gold-ring relative aspect-[4/3] w-full rounded-[2rem] object-cover"
             />
 
-            <div className="animate-float absolute -right-3 top-8 flex items-center gap-3 rounded-2xl border border-gold-100 bg-white/90 p-3.5 shadow-[0_20px_45px_-20px_rgba(120,84,39,0.4)] backdrop-blur sm:-right-8">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gold-500 text-zinc-950">
+            {/* کارت شناور ۱ */}
+            <div className="animate-float absolute -right-3 top-8 flex items-center gap-3 overflow-hidden rounded-2xl border border-white/50 bg-white/30 p-3.5 shadow-[0_8px_32px_0_rgba(207,163,56,0.35)] backdrop-blur-xl backdrop-saturate-150 [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] dark:border-white/15 dark:bg-white/5 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] sm:-right-8">
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/40 via-white/10 to-transparent dark:from-white/10 dark:via-white/2" />
+              <span className="relative grid h-10 w-10 place-items-center rounded-xl bg-gold-500 text-zinc-950">
                 <ShieldCheck className="h-5 w-5" />
               </span>
-              <span>
-                <span className="block text-[13px] font-black text-ink-950">
+              <span className="relative">
+                <span className="block text-[13px] font-black text-ink-950 dark:text-zinc-50">
                   {content.floatCard1.title}
                 </span>
-                <span className="block text-[10px] font-bold text-zinc-400">
+                <span className="block text-[10px] font-bold text-zinc-600 dark:text-gold-300">
                   {content.floatCard1.desc}
                 </span>
               </span>
             </div>
 
-            <div className="animate-float absolute -left-3 bottom-10 flex items-center gap-3 rounded-2xl border border-gold-100 bg-white/90 p-3.5 shadow-[0_20px_45px_-20px_rgba(120,84,39,0.4)] backdrop-blur [animation-delay:1.2s] sm:-left-8">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink-950 text-gold-400">
+            {/* کارت شناور ۲ */}
+            <div className="animate-float absolute -left-3 bottom-10 flex items-center gap-3 overflow-hidden rounded-2xl border border-white/50 bg-white/30 p-3.5 shadow-[0_8px_32px_0_rgba(207,163,56,0.35)] backdrop-blur-xl backdrop-saturate-150 [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] [animation-delay:1.2s] dark:border-white/15 dark:bg-white/5 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] sm:-left-8">
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/40 via-white/10 to-transparent dark:from-white/10 dark:via-white/2" />
+              <span className="relative grid h-10 w-10 place-items-center rounded-xl bg-gold-500 text-zinc-950">
                 <Truck className="h-5 w-5" />
               </span>
-              <span>
-                <span className="block text-[13px] font-black text-ink-950">
+              <span className="relative">
+                <span className="block text-[13px] font-black text-ink-950 dark:text-zinc-50">
                   {content.floatCard2.title}
                 </span>
-                <span className="block text-[10px] font-bold text-zinc-400">
+                <span className="block text-[10px] font-bold text-zinc-600 dark:text-gold-300">
                   {content.floatCard2.desc}
                 </span>
               </span>
@@ -405,41 +409,60 @@ export function WholesaleSection({ content }: { content: WholesaleContent }) {
   return (
     <section id="wholesale" className="scroll-mt-24 py-8 sm:py-12">
       <div className="container-x">
-        <div className="relative overflow-hidden rounded-[2.5rem] border border-gold-200 bg-gradient-to-br from-gold-100 via-gold-50 to-white p-6 sm:p-10 lg:p-14">
-          <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(50%_50%_at_85%_15%,black,transparent)]" />
-          <div className="relative grid items-start gap-10 lg:grid-cols-2">
-            <div>
-              <Reveal>
-                <span className="chip border-gold-300 bg-white/70 text-gold-700">
-                  <Diamond className="h-2.5 w-2.5 fill-gold-500 text-gold-500" />
-                  عمده‌فروشی
-                </span>
-                <h2 className="mt-4 text-2xl font-black leading-tight tracking-tight text-ink-950 sm:text-3xl lg:text-4xl">
-                  {content.heading}
-                </h2>
-                <p className="mt-4 max-w-lg text-sm leading-8 text-zinc-600">
-                  {content.subheading}
-                </p>
-              </Reveal>
-              <Reveal delay={150}>
-                <ul className="mt-6 space-y-3">
-                  {content.bullets.map((b) => (
-                    <li
-                      key={b}
-                      className="flex items-start gap-2.5 text-[13px] font-bold text-zinc-700"
-                    >
-                      <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-gold-600" />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
+        <div className="group relative">
+          {/* هاله طلایی-نارنجی پشت باکس */}
+          <div className="pointer-events-none absolute -inset-4 rounded-[3rem] bg-gradient-to-br from-gold-400/10 via-orange-500/10 to-red-500/10 opacity-0 blur-3xl transition-opacity duration-700 group-hover:opacity-100 dark:opacity-100" />
+
+          {/* خط نورانی بالای باکس */}
+          <div className="absolute inset-x-8 -top-px h-px bg-gradient-to-l from-transparent via-gold-400/60 to-transparent" />
+
+          {/* باکس اصلی */}
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-gold-200 bg-gradient-to-br from-gold-100 via-gold-50 to-white p-6 shadow-[0_30px_80px_-40px_rgba(207,163,56,0.4)] transition-all duration-500 sm:p-10 lg:p-14 dark:border-orange-500/20 dark:from-zinc-950 dark:via-orange-950/25 dark:to-zinc-950 dark:shadow-[0_30px_80px_-40px_rgba(249,115,22,0.25)]">
+            {/* الگوی نقطه‌ای */}
+            <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(50%_50%_at_85%_15%,black,transparent)] dark:opacity-60" />
+
+            {/* گرادیانت درخشان گوشه بالا-راست */}
+            <div className="pointer-events-none absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gold-400/20 blur-3xl dark:bg-orange-500/20" />
+
+            {/* گرادیانت درخشان گوشه پایین-چپ */}
+            <div className="pointer-events-none absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-gold-300/15 blur-3xl dark:bg-red-500/15" />
+
+            <div className="relative grid items-start gap-10 lg:grid-cols-2">
+              <div>
+                <Reveal>
+                  <span className="chip border-gold-300 bg-white/70 text-gold-700 dark:border-orange-500/40 dark:bg-orange-950/30 dark:text-orange-300">
+                    <Diamond className="h-2.5 w-2.5 fill-gold-500 text-gold-500 dark:fill-orange-400 dark:text-orange-400" />
+                    عمده‌فروشی
+                  </span>
+                  <h2 className="mt-4 text-2xl font-black leading-tight tracking-tight text-ink-950 sm:text-3xl lg:text-4xl dark:text-zinc-50">
+                    {content.heading}
+                  </h2>
+                  <p className="mt-4 max-w-lg text-sm leading-8 text-zinc-600 dark:text-zinc-400">
+                    {content.subheading}
+                  </p>
+                </Reveal>
+
+                <Reveal delay={150}>
+                  <ul className="mt-6 space-y-3">
+                    {content.bullets.map((b) => (
+                      <li
+                        key={b}
+                        className="flex items-start gap-2.5 text-[13px] font-bold text-zinc-700 dark:text-zinc-300"
+                      >
+                        <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-gold-600 dark:text-orange-400" />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
+              </div>
+
+              <Reveal delay={120}>
+                <div className="rounded-[1.75rem] border border-white bg-white/90 p-5 shadow-[0_35px_70px_-35px_rgba(120,84,39,0.5)] backdrop-blur sm:p-7 dark:border-zinc-800 dark:bg-zinc-900/80 dark:shadow-[0_35px_70px_-35px_rgba(249,115,22,0.3)]">
+                  <WholesaleForm />
+                </div>
               </Reveal>
             </div>
-            <Reveal delay={120}>
-              <div className="rounded-[1.75rem] border border-white bg-white/90 p-5 shadow-[0_35px_70px_-35px_rgba(120,84,39,0.5)] backdrop-blur sm:p-7">
-                <WholesaleForm />
-              </div>
-            </Reveal>
           </div>
         </div>
       </div>
