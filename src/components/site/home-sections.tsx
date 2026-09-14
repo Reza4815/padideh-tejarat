@@ -286,7 +286,7 @@ const FEATURE_ICONS: Record<string, typeof ShieldCheck> = {
 
 export function FeaturesSection({ content }: { content: FeaturesContent }) {
   return (
-    <section className="relative overflow-hidden bg-gold-50/40 py-16 sm:py-20">
+    <section className="relative overflow-hidden bg-gold-50/40 py-12 sm:py-16 lg:py-20 dark:bg-zinc-900/40">
       <div className="bg-dotgrid pointer-events-none absolute inset-0 opacity-30 [mask-image:radial-gradient(70%_70%_at_50%_50%,black,transparent)]" />
       <div className="container-x relative">
         <SectionHead
@@ -294,19 +294,19 @@ export function FeaturesSection({ content }: { content: FeaturesContent }) {
           title={content.heading}
           sub={content.subheading}
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {content.items.map((f, i) => {
             const Icon = FEATURE_ICONS[f.icon] ?? ShieldCheck;
             return (
               <Reveal key={`${f.title}-${i}`} delay={i * 80}>
-                <div className="group h-full rounded-3xl border border-zinc-100 bg-white p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-gold-300 hover:shadow-[0_26px_55px_-28px_rgba(120,84,39,0.4)]">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gold-100 text-gold-600 transition-colors duration-300 group-hover:bg-gold-500 group-hover:text-zinc-950">
-                    <Icon className="h-5.5 w-5.5" />
+                <div className="group h-full rounded-2xl border border-zinc-100 bg-white p-3.5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-gold-300 hover:shadow-[0_20px_40px_-20px_rgba(120,84,39,0.4)] sm:rounded-3xl sm:p-6 sm:text-right dark:border-zinc-800 dark:bg-zinc-900">
+                  <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-gold-100 text-gold-600 transition-colors duration-300 group-hover:bg-gold-500 group-hover:text-zinc-950 sm:mx-0 sm:h-12 sm:w-12 sm:rounded-2xl">
+                    <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5" />
                   </span>
-                  <h3 className="mt-4 text-[15px] font-black text-ink-950">
+                  <h3 className="mt-2.5 text-[12px] font-black text-ink-950 sm:mt-4 sm:text-[15px] dark:text-zinc-100">
                     {f.title}
                   </h3>
-                  <p className="mt-2 text-[12.5px] leading-6 text-zinc-500">
+                  <p className="mt-1.5 text-[10px] leading-5 text-zinc-500 sm:mt-2 sm:text-[12.5px] sm:leading-6 dark:text-zinc-400">
                     {f.desc}
                   </p>
                 </div>
