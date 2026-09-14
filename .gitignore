@@ -1,10 +1,29 @@
+# Dependencies
 node_modules
+
+# Next.js
 .next
-.env.local
+
+# Environment
 .env
+.env.local
+.env*.local
+.env*.backup
+*.backup
+
+# Uploads
 uploads
-"*.db"
-"*.sqlite"
+public/uploads
+
+# Database
+*.db
+*.sqlite
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Misc
 .DS_Store
-README.md
 bundle.txt
+README.md
