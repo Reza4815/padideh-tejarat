@@ -25,7 +25,8 @@ export default async function SiteLayout({
 
       <Header phone={contact.phones[0] ?? ""} hours={contact.hours} />
 
-      <main className="min-h-[60vh] overflow-x-hidden">{children}</main>
+      {/* overflow-x-clip به جای hidden — اسکرول عمودی رو قفل نمی‌کنه */}
+      <main className="min-h-[60vh] overflow-x-clip">{children}</main>
 
       <Footer
         contact={contact}

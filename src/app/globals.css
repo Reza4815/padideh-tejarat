@@ -507,3 +507,6 @@ input[type="number"] {
 html {
   scroll-behavior: smooth;
 }
+.overflow-x-clip {
+  overflow-x: clip;
+}
