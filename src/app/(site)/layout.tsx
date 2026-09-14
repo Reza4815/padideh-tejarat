@@ -7,7 +7,11 @@ import { listCategories } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-export default async function SiteLayout({ children }: { children: ReactNode }) {
+export default async function SiteLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [contact, footerContent, categories] = await Promise.all([
     getSiteContent("contact"),
     getSiteContent("footer"),
@@ -16,9 +20,18 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
 
   return (
     <CartProvider>
+      {/* اسپیسر برای هدر fixed */}
+      <div className="h-[100px]" aria-hidden="true" />
+
       <Header phone={contact.phones[0] ?? ""} hours={contact.hours} />
-      <main className="min-h-[60vh]">{children}</main>
-      <Footer contact={contact} footer={footerContent} categories={categories} />
+
+      <main className="min-h-[60vh] overflow-x-hidden">{children}</main>
+
+      <Footer
+        contact={contact}
+        footer={footerContent}
+        categories={categories}
+      />
     </CartProvider>
   );
 }

@@ -81,7 +81,7 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
   }, [pathname]);
   return (
     <>
-      <header className="sticky top-0 z-[60]">
+      <header className="fixed top-0 left-0 right-0 z-[60]">
         {/* top strip */}
         <div className="border-b border-gold-100 bg-gold-50/80 backdrop-blur dark:border-gold-900/40 dark:bg-zinc-950/90">
           <div className="container-x flex h-8 items-center justify-between text-[11px] font-bold text-gold-800 dark:text-gold-300">
