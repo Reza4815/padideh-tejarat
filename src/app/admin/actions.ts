@@ -205,6 +205,62 @@ export async function setOrderStatus(id: string, status: string) {
   return { ok: true as const };
 }
 
+/* ------------------------- payment / order lifecycle ------------------------ */
+
+const ORDER_LIFECYCLE = [
+  "pending",
+  "awaiting_review",
+  "approved",
+  "preparing",
+  "shipped",
+  "delivered",
+  "cancelled",
+] as const;
+
+/** تغییر مرحله سفارش؛ با رفتن به approved، پرداخت هم خودکار تأیید می‌شود */
+export async function setOrderLifecycle(id: string, orderStatus: string) {
+  await guard();
+  if (!(ORDER_LIFECYCLE as readonly string[]).includes(orderStatus)) {
+    return { ok: false as const, error: "وضعیت نامعتبر است" };
+  }
+  if (orderStatus === "approved") {
+    await db
+      .update(orders)
+      .set({ orderStatus, paymentStatus: "approved" })
+      .where(eq(orders.id, id));
+  } else {
+    await db.update(orders).set({ orderStatus }).where(eq(orders.id, id));
+  }
+  revalidatePath("/admin/orders");
+  return { ok: true as const };
+}
+
+/** تأیید رسید کارت‌به‌کارت */
+export async function approveReceipt(id: string) {
+  await guard();
+  await db
+    .update(orders)
+    .set({ paymentStatus: "approved", orderStatus: "approved", rejectionReason: null })
+    .where(eq(orders.id, id));
+  revalidatePath("/admin/orders");
+  return { ok: true as const };
+}
+
+/** رد رسید کارت‌به‌کارت با دلیل */
+export async function rejectReceipt(id: string, reason: string) {
+  await guard();
+  const rejectionReason = reason.trim().slice(0, 500);
+  if (!rejectionReason) {
+    return { ok: false as const, error: "دلیل رد رسید الزامی است" };
+  }
+  await db
+    .update(orders)
+    .set({ paymentStatus: "rejected", orderStatus: "pending", rejectionReason })
+    .where(eq(orders.id, id));
+  revalidatePath("/admin/orders");
+  return { ok: true as const };
+}
+
 export async function deleteOrder(id: string) {
   await guard();
   await db.delete(orders).where(eq(orders.id, id));

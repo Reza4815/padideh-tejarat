@@ -5,6 +5,13 @@ import { orders } from "@/db/schema";
 import { ensureSeed } from "@/lib/data";
 import { deleteOrder, setOrderStatus } from "@/app/admin/actions";
 import { DeleteButton, StatusSelect } from "@/components/admin/table-widgets";
+import { OrderPaymentPanel } from "@/components/admin/order-payment-panel";
+import {
+  PAYMENT_METHOD_LABEL,
+  PAYMENT_STATUS_LABEL,
+  type PaymentMethod,
+  type PaymentStatus,
+} from "@/lib/payment";
 import { formatDateTime, formatPrice, toFaDigits } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +23,13 @@ const OPTIONS = [
   { value: "done", label: "تکمیل شده" },
   { value: "canceled", label: "لغو شده" },
 ];
+
+const PAYMENT_BADGE: Record<PaymentStatus, string> = {
+  pending: "bg-zinc-100 text-zinc-500",
+  awaiting_review: "bg-amber-100 text-amber-700",
+  approved: "bg-emerald-100 text-emerald-700",
+  rejected: "bg-red-100 text-red-600",
+};
 
 export default async function AdminOrdersPage() {
   await ensureSeed();
@@ -36,7 +50,10 @@ export default async function AdminOrdersPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {rows.map((o) => (
+          {rows.map((o) => {
+            const pm = (o.paymentMethod as PaymentMethod) ?? "online";
+            const ps = (o.paymentStatus as PaymentStatus) ?? "pending";
+            return (
             <article
               key={o.id}
               className={
@@ -51,6 +68,20 @@ export default async function AdminOrdersPage() {
                     <p className="text-[14px] font-black text-ink-950">{o.customerName}</p>
                     <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-extrabold text-zinc-500" dir="ltr">
                       #{o.id.slice(0, 8).toUpperCase()}
+                    </span>
+                    {o.trackingCode && (
+                      <span className="rounded-full bg-gold-100 px-2.5 py-1 font-mono text-[10px] font-extrabold text-gold-700" dir="ltr">
+                        {o.trackingCode}
+                      </span>
+                    )}
+                  </div>
+                  {/* بج‌های روش و وضعیت پرداخت */}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-extrabold text-zinc-600">
+                      {PAYMENT_METHOD_LABEL[pm] ?? pm}
+                    </span>
+                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${PAYMENT_BADGE[ps] ?? PAYMENT_BADGE.pending}`}>
+                      {PAYMENT_STATUS_LABEL[ps] ?? ps}
                     </span>
                   </div>
                   <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-bold text-zinc-500 tnum">
@@ -102,6 +133,9 @@ export default async function AdminOrdersPage() {
                 </table>
               </div>
 
+              {/* پنل پرداخت و تغییر مرحله سفارش */}
+              <OrderPaymentPanel order={o} />
+
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-[11px] text-zinc-400 tnum">{formatDateTime(o.createdAt)}</p>
                 <p className="text-[15px] font-black text-gold-700 tnum">
@@ -109,7 +143,8 @@ export default async function AdminOrdersPage() {
                 </p>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -117,6 +117,13 @@ export const orders = pgTable("orders", {
     .notNull(),
   total: integer("total").notNull().default(0),
   status: text("status").notNull().default("new"),
+  // ── فلو پرداخت و پیگیری سفارش (فقط ADD — ستون status دست‌نخورده باقی ماند) ──
+  paymentMethod: text("payment_method").notNull().default("online"),
+  paymentStatus: text("payment_status").notNull().default("pending"),
+  orderStatus: text("order_status").notNull().default("pending"),
+  receiptImage: text("receipt_image"),
+  rejectionReason: text("rejection_reason"),
+  trackingCode: text("tracking_code").unique(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

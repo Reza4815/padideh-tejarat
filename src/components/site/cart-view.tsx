@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   ArrowRight,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/components/site/cart-provider";
 import { formatPrice, toFaDigits } from "@/lib/utils";
+import { CHECKOUT_STORAGE_KEY } from "@/lib/payment";
 
 type SuggestedProduct = {
   id: string;
@@ -33,6 +35,7 @@ type SuggestedProduct = {
 };
 
 export function CartView() {
+  const router = useRouter();
   const {
     items,
     ready,
@@ -40,8 +43,6 @@ export function CartView() {
     count,
     setQty,
     remove,
-    clear,
-    refreshPrices,
     add,
   } = useCart();
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">(
@@ -131,50 +132,34 @@ export function CartView() {
     const form = e.currentTarget;
     const fd = new FormData(form);
 
-    try {
-      await Promise.race([
-        refreshPrices(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), 3000),
-        ),
-      ]);
-    } catch {
-      /* ignore */
+    const draft = {
+      customerName: String(fd.get("name") ?? ""),
+      phone: String(fd.get("phone") ?? ""),
+      province: String(fd.get("province") ?? ""),
+      city: String(fd.get("city") ?? ""),
+      address: String(fd.get("address") ?? ""),
+      postalCode: String(fd.get("postalCode") ?? ""),
+      plateNumber: String(fd.get("plateNumber") ?? ""),
+      note: String(fd.get("note") ?? ""),
+      items: items.map((i) => ({ id: i.id, qty: i.qty })),
+    };
+
+    // اعتبارسنجی سبک سمت کاربر؛ اعتبارسنجی اصلی در /api/orders انجام می‌شود
+    if (!draft.customerName.trim() || !draft.phone.trim() || draft.items.length === 0) {
+      setError("اطلاعات گیرنده و سبد خرید را تکمیل کنید");
+      setStatus("err");
+      return;
     }
 
     try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName: String(fd.get("name") ?? ""),
-          phone: String(fd.get("phone") ?? ""),
-          province: String(fd.get("province") ?? ""),
-          city: String(fd.get("city") ?? ""),
-          address: String(fd.get("address") ?? ""),
-          postalCode: String(fd.get("postalCode") ?? ""),
-          plateNumber: String(fd.get("plateNumber") ?? ""),
-          note: String(fd.get("note") ?? ""),
-          items: items.map((i) => ({ id: i.id, qty: i.qty })),
-        }),
-      });
-      const data = (await res.json()) as {
-        ok?: boolean;
-        id?: string;
-        error?: string;
-      };
-      if (res.ok && data.ok) {
-        setOrderId(data.id ?? "");
-        setStatus("ok");
-        clear();
-      } else {
-        setError(data.error ?? "خطایی رخ داد");
-        setStatus("err");
-      }
+      sessionStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(draft));
     } catch {
-      setError("ارتباط با سرور برقرار نشد");
+      setError("مرورگر اجازه ذخیره اطلاعات را نداد");
       setStatus("err");
+      return;
     }
+    // ثبت نهایی و پرداخت در صفحه checkout انجام می‌شود
+    router.push("/checkout");
   }
 
   if (!ready) {
@@ -713,11 +698,11 @@ export function CartView() {
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                {status === "sending" ? "در حال ثبت..." : "ثبت نهایی سفارش"}
+                {status === "sending" ? "در حال ثبت..." : "ثبت سفارش و ادامه پرداخت"}
               </button>
 
               <p className="text-center text-[10px] leading-5 text-zinc-400 dark:text-zinc-500">
-                با ثبت سفارش، کارشناسان ما با شما تماس می‌گیرند.
+                در مرحله بعد، روش پرداخت (آنلاین یا کارت‌به‌کارت) را انتخاب می‌کنید.
               </p>
             </div>
           </form>

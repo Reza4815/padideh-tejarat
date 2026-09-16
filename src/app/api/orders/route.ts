@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { orders, products } from "@/db/schema";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { ensureSeed } from "@/lib/data";
+import { generateTrackingCode } from "@/lib/payment";
 
 type IncomingItem = {
   id?: string;
@@ -22,7 +23,10 @@ export async function POST(req: Request) {
       plateNumber?: string;
       note?: string;
       items?: IncomingItem[];
+      paymentMethod?: string;
     };
+
+    const paymentMethod = body.paymentMethod === "card" ? "card" : "online";
 
     const customerName = (body.customerName ?? "").trim();
     const phone = (body.phone ?? "").trim();
@@ -123,6 +127,18 @@ export async function POST(req: Request) {
 
     const total = items.reduce((s, i) => s + i.price * i.qty, 0);
 
+    // تولید کد پیگیری یکتا با فرمت ORD-YYYYMMDD-XXX
+    let trackingCode = generateTrackingCode();
+    for (let i = 0; i < 5; i++) {
+      const [dup] = await db
+        .select({ id: orders.id })
+        .from(orders)
+        .where(eq(orders.trackingCode, trackingCode))
+        .limit(1);
+      if (!dup) break;
+      trackingCode = generateTrackingCode();
+    }
+
     const [row] = await db
       .insert(orders)
       .values({
@@ -136,10 +152,14 @@ export async function POST(req: Request) {
         note: (body.note ?? "").trim().slice(0, 1000),
         items,
         total,
+        paymentMethod,
+        paymentStatus: "pending",
+        orderStatus: "pending",
+        trackingCode,
       })
       .returning({ id: orders.id });
 
-    return NextResponse.json({ ok: true, id: row.id });
+    return NextResponse.json({ ok: true, id: row.id, trackingCode });
   } catch (e) {
     console.error(e);
     return NextResponse.json(
