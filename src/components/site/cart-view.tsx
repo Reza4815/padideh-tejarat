@@ -158,6 +158,20 @@ export function CartView() {
       setStatus("err");
       return;
     }
+    // ادامه خرید فقط برای کاربران واردشده؛ مهمان به صفحه ورود هدایت می‌شود
+    // (پیش‌نویس سبد در sessionStorage می‌ماند تا بعد از ورود ادامه دهد)
+    let authed = false;
+    try {
+      const me = await fetch("/api/auth/me", { cache: "no-store" });
+      authed = me.ok;
+    } catch {
+      authed = false;
+    }
+    if (!authed) {
+      setStatus("idle");
+      router.push(`/auth/login?redirect=${encodeURIComponent("/checkout")}`);
+      return;
+    }
     // ثبت نهایی و پرداخت در صفحه checkout انجام می‌شود
     router.push("/checkout");
   }

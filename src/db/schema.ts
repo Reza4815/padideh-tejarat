@@ -5,6 +5,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  serial,
   text,
   timestamp,
   uuid,
@@ -124,6 +125,23 @@ export const orders = pgTable("orders", {
   receiptImage: text("receipt_image"),
   rejectionReason: text("rejection_reason"),
   trackingCode: text("tracking_code").unique(),
+  // ✅ حساب کاربری مالک سفارش (nullable برای سفارش‌های قدیمی مهمان)
+  userId: integer("user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// ── احراز هویت کاربران فروشگاه (جدا از admins) ──
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  phone: text("phone").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  name: text("name"),
+  email: text("email"),
+  adminNote: text("admin_note"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -143,3 +161,4 @@ export type CategoryRow = typeof categories.$inferSelect;
 export type WholesaleRow = typeof wholesaleInquiries.$inferSelect;
 export type OrderRow = typeof orders.$inferSelect;
 export type AdminRow = typeof admins.$inferSelect;
+export type UserRow = typeof users.$inferSelect;

@@ -4,6 +4,7 @@ import { orders, products } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { ensureSeed } from "@/lib/data";
 import { generateTrackingCode } from "@/lib/payment";
+import { getCurrentUser } from "@/lib/user-auth";
 
 type IncomingItem = {
   id?: string;
@@ -139,6 +140,10 @@ export async function POST(req: Request) {
       trackingCode = generateTrackingCode();
     }
 
+    // اگر کاربر وارد شده باشد، سفارش به حساب او متصل می‌شود
+    // (nullable تا سفارش‌های قدیمی مهمان بدون تغییر بمانند)
+    const sessionUser = await getCurrentUser().catch(() => null);
+
     const [row] = await db
       .insert(orders)
       .values({
@@ -156,6 +161,7 @@ export async function POST(req: Request) {
         paymentStatus: "pending",
         orderStatus: "pending",
         trackingCode,
+        userId: sessionUser?.id ?? null,
       })
       .returning({ id: orders.id });
 

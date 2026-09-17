@@ -14,6 +14,7 @@ import {
   Settings,
   ShoppingBag,
   Store,
+  Users,
   X,
 } from "lucide-react";
 import { Logo } from "@/components/site/header";
@@ -27,6 +28,7 @@ const NAV = [
   { href: "/admin/categories", label: "دسته‌بندی‌ها", icon: FolderTree },
   { href: "/admin/content", label: "محتوای سایت", icon: FileText },
   { href: "/admin/orders", label: "سفارش‌ها", icon: ShoppingBag },
+  { href: "/admin/users", label: "کاربران", icon: Users },
   { href: "/admin/inquiries", label: "استعلام‌های عمده", icon: ClipboardList },
   { href: "/admin/settings", label: "تنظیمات", icon: Settings },
 ];

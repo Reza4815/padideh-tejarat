@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Clock, Menu, Phone, Search, ShoppingBag, X } from "lucide-react";
 import { useCart } from "@/components/site/cart-provider";
 import { ThemeToggle } from "@/components/site/theme-toggle";
+import { UserMenu } from "@/components/site/user-menu";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -181,6 +182,7 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
               })}
             </nav>
             <div className="flex items-center gap-1.5">
+              <UserMenu />
               <ThemeToggle />
               <button
                 onClick={() => setSearchOpen(true)}
@@ -234,6 +236,14 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
                   <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
                 </Link>
               ))}
+              <Link
+                href="/auth/login"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-between rounded-xl bg-gold-50 px-4 py-3 text-sm font-black text-gold-700 transition hover:bg-gold-100 dark:bg-gold-950/40 dark:text-gold-300"
+              >
+                ورود / ثبت‌نام • حساب کاربری
+                <span className="h-1.5 w-1.5 rounded-full bg-gold-500" />
+              </Link>
             </nav>
           </div>
         </div>
