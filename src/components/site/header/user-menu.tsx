@@ -15,11 +15,6 @@ import { cn } from "@/lib/utils";
 
 type MeUser = { id: number; phone: string; name: string | null };
 
-function avatarLetter(user: MeUser) {
-  const name = user.name?.trim();
-  return (name ? name[0] : user.phone.slice(-2)) || "؟";
-}
-
 export function UserMenu() {
   const router = useRouter();
   const [user, setUser] = useState<MeUser | null | undefined>(undefined);
@@ -81,7 +76,7 @@ export function UserMenu() {
     return (
       <Link
         href="/auth/login"
-        className="hidden items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2.5 text-[12px] font-extrabold text-zinc-700 transition hover:border-gold-400 hover:text-gold-700 sm:inline-flex dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-gold-500 dark:hover:text-gold-400"
+        className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2.5 text-[12px] font-extrabold text-zinc-700 transition hover:border-gold-400 hover:text-gold-700 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-gold-500 dark:hover:text-gold-400"
       >
         {user === undefined ? (
           <Loader2 className="h-4 w-4 animate-spin text-gold-500" />
@@ -103,8 +98,8 @@ export function UserMenu() {
         aria-expanded={open}
         aria-label="منوی حساب کاربری"
       >
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 via-gold-500 to-gold-700 text-[12px] font-black text-zinc-950 shadow-[0_6px_14px_-6px_rgba(207,163,56,0.9)]">
-          {avatarLetter(user)}
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 via-gold-500 to-gold-700 text-zinc-950 shadow-[0_6px_14px_-6px_rgba(207,163,56,0.9)]">
+          <User className="h-4 w-4" strokeWidth={2.5} />
         </span>
         <ChevronDown
           className={cn(
@@ -117,15 +112,18 @@ export function UserMenu() {
       <div
         role="menu"
         className={cn(
-          "absolute right-0 top-full z-[70] mt-2 w-[min(20rem,calc(100vw-2rem))] origin-top overflow-hidden rounded-xl border border-zinc-100 bg-white shadow-lg transition-all duration-200 sm:w-56 dark:border-zinc-700 dark:bg-zinc-900",
+          "absolute left-1/2 top-full z-[999] mt-2 w-[calc(100vw-2rem)] max-w-[280px] -translate-x-1/2 origin-top overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl transition-all duration-200 sm:left-auto sm:right-0 sm:w-60 sm:translate-x-0 dark:border-zinc-700 dark:bg-zinc-900",
           open
             ? "visible scale-100 opacity-100"
             : "invisible scale-95 opacity-0",
         )}
       >
         <div className="px-4 py-3">
+          <p className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">
+            حساب کاربری
+          </p>
           <p
-            className="text-[13px] font-black text-ink-950 tnum dark:text-zinc-100"
+            className="mt-0.5 text-[13px] font-black text-ink-950 tnum dark:text-zinc-100"
             dir="ltr"
           >
             {user.phone}

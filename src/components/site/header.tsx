@@ -80,6 +80,7 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
     window.addEventListener("hashchange", updateHash);
     return () => window.removeEventListener("hashchange", updateHash);
   }, [pathname]);
+
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-[60]">
@@ -108,7 +109,7 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
               "shadow-[0_16px_40px_-24px_rgba(16,16,20,0.25)] dark:shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]",
           )}
         >
-          <div className="container-x flex h-16 items-center justify-between gap-3">
+          <div className="container-x flex h-16 items-center justify-between gap-2">
             <Link href="/" aria-label="پدیده تجارت الوند">
               <Logo />
             </Link>
@@ -130,12 +131,10 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
                     key={item.href}
                     href={item.href}
                     onClick={(e) => {
-                      // اگه لینک hash داره (#)
                       if (item.href.startsWith("/#")) {
-                        const id = item.href.slice(2); // "wholesale"
+                        const id = item.href.slice(2);
 
                         if (pathname === "/") {
-                          // توی صفحه اصلی هستی → فقط اسکرول کن
                           e.preventDefault();
                           const el = document.getElementById(id);
                           if (el) {
@@ -145,7 +144,6 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
                             });
                           }
                         } else {
-                          // توی صفحه دیگه‌ای هستی → برو صفحه اصلی، بعد اسکرول کن
                           e.preventDefault();
                           router.push("/");
                           setTimeout(() => {
@@ -181,16 +179,26 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
                 );
               })}
             </nav>
+
+            {/* آیکون‌ها */}
             <div className="flex items-center gap-1.5">
               <UserMenu />
-              <ThemeToggle />
+
+              {/* تم — فقط دسکتاپ */}
+              <div className="hidden sm:block">
+                <ThemeToggle />
+              </div>
+
+              {/* جستجو — فقط دسکتاپ */}
               <button
                 onClick={() => setSearchOpen(true)}
-                className="grid h-10 w-10 place-items-center rounded-full border border-zinc-200 text-zinc-700 transition hover:border-gold-400 hover:text-gold-700 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-gold-500 dark:hover:text-gold-400"
+                className="hidden h-10 w-10 place-items-center rounded-full border border-zinc-200 text-zinc-700 transition hover:border-gold-400 hover:text-gold-700 sm:grid dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-gold-500 dark:hover:text-gold-400"
                 aria-label="جستجو"
               >
                 <Search className="h-4.5 w-4.5" />
               </button>
+
+              {/* سبد خرید — همه سایزها */}
               <button
                 onClick={() => setOpen(true)}
                 className="relative grid h-10 w-10 place-items-center rounded-full bg-ink-950 text-white transition hover:bg-zinc-800 dark:bg-gold-500 dark:text-zinc-950 dark:hover:bg-gold-400"
@@ -203,6 +211,8 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
                   </span>
                 )}
               </button>
+
+              {/* همبرگر — فقط موبایل */}
               <button
                 onClick={() => setMenuOpen((v) => !v)}
                 className="grid h-10 w-10 place-items-center rounded-full border border-zinc-200 text-zinc-700 transition hover:border-gold-400 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-gold-500 lg:hidden"
@@ -218,31 +228,61 @@ export function Header({ phone, hours }: { phone: string; hours: string }) {
           </div>
 
           {/* mobile menu */}
+          {/* mobile menu */}
           <div
             className={cn(
               "overflow-hidden border-zinc-100 transition-all duration-500 dark:border-zinc-800 lg:hidden",
-              menuOpen ? "max-h-96 border-t" : "max-h-0",
+              menuOpen ? "max-h-[32rem] border-t" : "max-h-0",
             )}
           >
             <nav className="container-x flex flex-col gap-1 py-4">
+              {/* لینک‌های ناوبری */}
               {NAV.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-zinc-700 transition hover:bg-gold-50 hover:text-gold-700 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-gold-400"
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-zinc-700 transition hover:bg-gold-50 hover:text-gold-700 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-gold-400"
                 >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold-400" />
                   {item.label}
-                  <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
                 </Link>
               ))}
+
+              {/* جداکننده */}
+              <div className="my-2 border-t border-zinc-100 dark:border-zinc-800 sm:hidden" />
+
+              {/* جستجو — فقط موبایل */}
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  setSearchOpen(true);
+                }}
+                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-zinc-700 transition hover:bg-gold-50 hover:text-gold-700 sm:hidden dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-gold-400"
+              >
+                <Search className="h-4 w-4 shrink-0 text-gold-500" />
+                جستجو در فروشگاه
+              </button>
+
+              {/* تم — فقط موبایل */}
+              <div className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold text-zinc-700 sm:hidden dark:text-zinc-200">
+                <span className="flex items-center gap-3">
+                  <span className="h-4 w-4 shrink-0" />
+                  حالت نمایش
+                </span>
+                <ThemeToggle />
+              </div>
+
+              {/* جداکننده قبل از CTA */}
+              <div className="my-2 border-t border-zinc-100 dark:border-zinc-800" />
+
+              {/* CTA ورود / ثبت‌نام */}
               <Link
                 href="/auth/login"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-between rounded-xl bg-gold-50 px-4 py-3 text-sm font-black text-gold-700 transition hover:bg-gold-100 dark:bg-gold-950/40 dark:text-gold-300"
+                className="flex items-center justify-center rounded-xl bg-gold-500 px-4 py-3 text-sm font-black text-white shadow-[0_8px_24px_-8px_rgba(207,163,56,0.7)] transition hover:bg-gold-400 active:scale-[0.98]"
               >
                 ورود / ثبت‌نام • حساب کاربری
-                <span className="h-1.5 w-1.5 rounded-full bg-gold-500" />
               </Link>
             </nav>
           </div>

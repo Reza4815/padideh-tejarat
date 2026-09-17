@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import type { SlideItem } from "@/lib/content";
 
 export default function HeroSlider({ slides }: { slides: SlideItem[] }) {
@@ -29,46 +30,53 @@ export default function HeroSlider({ slides }: { slides: SlideItem[] }) {
 
   useEffect(() => {
     if (isPaused || safeSlides.length <= 1) return;
-    const timer = setInterval(next, 5000);
+    const timer = setInterval(next, 6000);
     return () => clearInterval(timer);
   }, [next, isPaused, safeSlides.length]);
 
   if (safeSlides.length === 0) return null;
 
+  const textItem = (visible: boolean) =>
+    [
+      "transition-all duration-300 ease-out motion-reduce:transition-none",
+      visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6",
+    ].join(" ");
+
+  const textDelay = (visible: boolean, delay: number) => ({
+    transitionDelay: `${visible ? delay : 0}ms`,
+  });
+
   return (
     <div
-      className={`relative transition-all duration-1000 ease-out ${
+      className={`relative mb-2 w-full transition-all duration-1000 ease-out sm:mb-4 ${
         isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
       }`}
     >
-      {/* هاله طلایی */}
-      <div className="pointer-events-none absolute -inset-3 rounded-[2rem] bg-gold-400/8 blur-2xl" />
-
-      {/* خط دور گرادیانت طلایی */}
-      <div className="pointer-events-none absolute -inset-[1.5px] rounded-[1.75rem] bg-gradient-to-br from-gold-300 via-gold-500 to-gold-300 opacity-40" />
-
-      {/* اسلایدر اصلی */}
       <section
-        className="group relative w-full overflow-hidden rounded-[1.7rem] bg-zinc-50 dark:bg-black shadow-[0_20px_50px_-20px_rgba(207,163,56,0.4)] transition-shadow duration-500 hover:shadow-[0_30px_70px_-20px_rgba(207,163,56,0.6)]"
+        className="group relative w-full shrink-0 overflow-hidden rounded-3xl border-2 border-gold-500/40 bg-zinc-50 shadow-[0_20px_50px_-20px_rgba(207,163,56,0.4)] transition-all duration-500 hover:border-gold-500/70 hover:shadow-[0_30px_70px_-20px_rgba(207,163,56,0.6)] dark:bg-black"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
-        <div className="relative h-[320px] sm:h-[380px] md:h-[440px] lg:h-[500px]">
-          {safeSlides.map((slide, index) => (
-            <div
-              key={slide.id || index}
-              className={`absolute inset-0 transition-all duration-1000 ${
-                index === current
-                  ? "opacity-100 scale-100 z-10"
-                  : "opacity-0 scale-105 z-0"
-              }`}
-            >
-              {slide.image ? (
-                <>
-                  {/* موبایل: عکس موبایل (اگه هست) */}
-                  {slide.mobileImage ? (
+        <div className="relative h-[280px] w-full sm:h-[340px] md:h-[400px] lg:h-[460px] xl:h-[520px]">
+          {safeSlides.map((slide, index) => {
+            const active = index === current;
+            const visible = isLoaded && active;
+
+            return (
+              <div
+                key={slide.id || index}
+                className={`absolute inset-0 transition-opacity duration-700 ease-out ${
+                  active
+                    ? "z-10 opacity-100"
+                    : "z-0 opacity-0 pointer-events-none"
+                }`}
+                aria-hidden={!active}
+              >
+                {/* تصویر */}
+                {slide.image ? (
+                  slide.mobileImage ? (
                     <picture>
                       <source
                         media="(max-width: 768px)"
@@ -79,8 +87,10 @@ export default function HeroSlider({ slides }: { slides: SlideItem[] }) {
                         alt={slide.title || "slide"}
                         fill
                         priority={index === 0}
-                        className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
                         sizes="100vw"
+                        className={`object-cover object-center transition-transform duration-[1200ms] ease-out group-hover:scale-105 ${
+                          active ? "scale-100" : "scale-105"
+                        }`}
                       />
                     </picture>
                   ) : (
@@ -89,71 +99,112 @@ export default function HeroSlider({ slides }: { slides: SlideItem[] }) {
                       alt={slide.title || "slide"}
                       fill
                       priority={index === 0}
-                      className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
                       sizes="100vw"
+                      className={`object-cover object-center transition-transform duration-[1200ms] ease-out group-hover:scale-105 ${
+                        active ? "scale-100" : "scale-105"
+                      }`}
                     />
-                  )}
-                </>
-              ) : null}
+                  )
+                ) : null}
 
-              {/* گرادیانت از راست */}
-              <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-black/40 to-transparent" />
+                {/* گرادیانت‌ها */}
+                <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-black/40 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-black/60 to-transparent" />
 
-              {/* محتوا - سمت راست */}
-              <div className="absolute inset-0 flex flex-col justify-center items-start text-right px-6 sm:px-10 md:px-16 lg:px-24">
-                <div className="max-w-[85%] sm:max-w-[60%] md:max-w-[55%] lg:max-w-[50%]">
-                  {slide.title ? (
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">
-                      {slide.title}
-                    </h3>
-                  ) : null}
-                  {slide.subtitle ? (
-                    <p className="text-sm sm:text-base md:text-lg text-gray-100 mb-5 md:mb-7 drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] leading-7">
-                      {slide.subtitle}
-                    </p>
-                  ) : null}
-                  {slide.cta && slide.link ? (
-                    <Link
-                      href={slide.link}
-                      className="inline-block rounded-full bg-amber-500 px-6 py-2.5 sm:px-7 sm:py-3 text-sm sm:text-base font-bold text-black hover:bg-amber-400 transition shadow-lg"
+                {/* محتوا */}
+                <div
+                  dir="rtl"
+                  className="absolute inset-0 flex flex-col items-start justify-center px-14 sm:px-20 lg:px-24"
+                >
+                  <div className="w-full max-w-[92%] text-right sm:max-w-[70%] lg:max-w-[55%]">
+                    <span
+                      style={textDelay(visible, 0)}
+                      className={`${textItem(visible)} inline-flex items-center gap-2 rounded-full border border-gold-300/40 bg-white/10 px-3.5 py-1.5 text-[10px] font-extrabold text-gold-200 backdrop-blur-md sm:text-[11px]`}
                     >
-                      {slide.cta}
-                    </Link>
-                  ) : null}
+                      <Sparkles className="h-3 w-3" />
+                      پدیده تجارت الوند
+                    </span>
+
+                    {slide.title ? (
+                      <h3
+                        style={textDelay(visible, 120)}
+                        className={`${textItem(visible)} mt-4 text-xl font-black leading-tight text-white [text-shadow:0_2px_14px_rgba(0,0,0,0.75)] sm:text-3xl md:text-4xl lg:text-5xl`}
+                      >
+                        {slide.title}
+                      </h3>
+                    ) : null}
+
+                    {slide.subtitle ? (
+                      <p
+                        style={textDelay(visible, 220)}
+                        className={`${textItem(visible)} mt-3 text-sm font-medium leading-7 text-white/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.7)] sm:mt-4 sm:text-base md:text-lg`}
+                      >
+                        {slide.subtitle}
+                      </p>
+                    ) : null}
+
+                    {slide.cta && slide.link ? (
+                      <div
+                        style={textDelay(visible, 320)}
+                        className={textItem(visible)}
+                      >
+                        <Link
+                          href={slide.link}
+                          className="group/cta mt-5 inline-flex items-center gap-2 rounded-full bg-gold-500 px-5 py-2.5 text-xs font-extrabold text-zinc-950 shadow-[0_18px_35px_-15px_rgba(207,163,56,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-[0_24px_45px_-15px_rgba(207,163,56,1)] active:translate-y-0 sm:mt-6 sm:px-6 sm:py-3 sm:text-sm md:text-base"
+                        >
+                          {slide.cta}
+                          <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-300 group-hover/cta:-translate-x-1 sm:h-4 sm:w-4" />
+                        </Link>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {safeSlides.length > 1 ? (
           <>
+            {/* دکمه قبلی */}
             <button
+              type="button"
               onClick={prev}
               aria-label="اسلاید قبلی"
-              className="absolute top-1/2 right-3 sm:right-5 -translate-y-1/2 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur text-white opacity-0 transition-all duration-300 group-hover:opacity-100 hover:bg-amber-500 hover:text-black hover:scale-110"
+              className="absolute right-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white/5 text-white shadow-lg shadow-black/40 backdrop-blur-2xl backdrop-saturate-150 transition-all duration-300 hover:scale-110 hover:border-gold-400 hover:bg-gold-500 hover:text-zinc-950 active:scale-95 sm:right-4 sm:h-10 sm:w-10 dark:border-white/30 dark:bg-white/5 dark:text-white dark:backdrop-blur-2xl dark:backdrop-saturate-150 dark:hover:border-gold-400 dark:hover:bg-gold-500 dark:hover:text-white"
             >
-              ›
+              <ChevronRight
+                className="h-4 w-4 sm:h-5 sm:w-5"
+                strokeWidth={2.5}
+              />
             </button>
 
+            {/* دکمه بعدی */}
             <button
+              type="button"
               onClick={next}
               aria-label="اسلاید بعدی"
-              className="absolute top-1/2 left-3 sm:left-5 -translate-y-1/2 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur text-white opacity-0 transition-all duration-300 group-hover:opacity-100 hover:bg-amber-500 hover:text-black hover:scale-110"
+              className="absolute left-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white/5 text-white shadow-lg shadow-black/40 backdrop-blur-2xl backdrop-saturate-150 transition-all duration-300 hover:scale-110 hover:border-gold-400 hover:bg-gold-500 hover:text-zinc-950 active:scale-95 sm:left-4 sm:h-10 sm:w-10 dark:border-white/30 dark:bg-white/5 dark:text-white dark:backdrop-blur-2xl dark:backdrop-saturate-150 dark:hover:border-gold-400 dark:hover:bg-gold-500 dark:hover:text-white"
             >
-              ‹
+              <ChevronLeft
+                className="h-4 w-4 sm:h-5 sm:w-5"
+                strokeWidth={2.5}
+              />
             </button>
 
-            <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            {/* نشانگرها */}
+            <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
               {safeSlides.map((_, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => setCurrent(i)}
                   aria-label={`رفتن به اسلاید ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                  aria-current={i === current}
+                  className={`h-2 rounded-full transition-all duration-300 ease-out ${
                     i === current
-                      ? "bg-gold-500 w-7 shadow-[0_0_12px_rgba(207,163,56,0.8)]"
-                      : "bg-white/60 w-1.5 hover:bg-white/90"
+                      ? "w-7 bg-gold-500 shadow-[0_0_12px_rgba(207,163,56,0.85)]"
+                      : "w-2 bg-white/40 hover:bg-white/70"
                   }`}
                 />
               ))}
