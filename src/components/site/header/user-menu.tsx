@@ -76,14 +76,14 @@ export function UserMenu() {
     return (
       <Link
         href="/auth/login"
-        className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2.5 text-[12px] font-extrabold text-zinc-700 transition hover:border-gold-400 hover:text-gold-700 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-gold-500 dark:hover:text-gold-400"
+        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-gold-500 px-4 py-2.5 text-[12px] font-extrabold text-white shadow-[0_8px_24px_-8px_rgba(207,163,56,0.7)] transition-all hover:bg-gold-400 active:scale-95"
       >
         {user === undefined ? (
-          <Loader2 className="h-4 w-4 animate-spin text-gold-500" />
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
         ) : (
-          <LogIn className="h-4 w-4" />
+          <LogIn className="h-4 w-4 shrink-0" />
         )}
-        ورود / ثبت‌نام
+        <span>ورود / ثبت‌نام</span>
       </Link>
     );
   }
