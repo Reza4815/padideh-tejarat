@@ -137,16 +137,25 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
     try {
       const form = new FormData();
       form.append("file", file);
-      const up = await fetch("/api/receipts/upload", { method: "POST", body: form });
-      const upData = (await up.json()) as { ok?: boolean; url?: string; error?: string };
-      if (!up.ok || !upData.ok || !upData.url) throw new Error(upData.error ?? "آپلود ناموفق بود");
+      const up = await fetch("/api/receipts/upload", {
+        method: "POST",
+        body: form,
+      });
+      const upData = (await up.json()) as {
+        ok?: boolean;
+        url?: string;
+        error?: string;
+      };
+      if (!up.ok || !upData.ok || !upData.url)
+        throw new Error(upData.error ?? "آپلود ناموفق بود");
       const res = await fetch(`/api/orders/${order.id}/receipt`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiptUrl: upData.url }),
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok || !data.ok) throw new Error(data.error ?? "ثبت رسید ناموفق بود");
+      if (!res.ok || !data.ok)
+        throw new Error(data.error ?? "ثبت رسید ناموفق بود");
       setDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "خطایی رخ داد");
@@ -157,35 +166,31 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
-      {/* کارت خلاصه */}
-      <div className="overflow-hidden rounded-xl border border-gold-200 bg-gradient-to-b from-gold-50/60 to-white p-5 dark:border-gold-700/40 dark:from-zinc-900/60 dark:to-zinc-900">
-        <div className="flex items-center justify-between gap-3">
-          <p className="flex items-center gap-1.5 text-[11px] font-extrabold tracking-wider text-gold-600 dark:text-gold-400">
-            <Hash className="h-3.5 w-3.5" />
-            کد پیگیری سفارش
-          </p>
-          <StatusBadge status={order.orderStatus} />
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-2" dir="ltr">
-          <span className="font-mono text-2xl font-black tracking-wider text-ink-950 tnum dark:text-zinc-100">
+      {/* خط کوچیک کد پیگیری */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-100 bg-white px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-center gap-2">
+          <Hash className="h-3.5 w-3.5 text-gold-600 dark:text-gold-400" />
+          <span
+            className="text-[11.5px] font-black tracking-wider text-ink-950 tnum dark:text-zinc-100"
+            dir="ltr"
+          >
             {order.trackingCode ?? order.id.slice(0, 8).toUpperCase()}
           </span>
           <button
             type="button"
             onClick={copyCode}
-            className="inline-flex items-center gap-1 rounded-full border border-gold-300 bg-white px-3 py-1 text-[11px] font-extrabold text-gold-700 transition hover:bg-gold-50 active:scale-95 dark:border-gold-700/50 dark:bg-zinc-800 dark:text-gold-300"
+            className="inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-gold-600 active:scale-95 dark:hover:bg-zinc-800 dark:hover:text-gold-400"
+            aria-label="کپی کد پیگیری"
           >
-            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-            {copied ? "کپی شد!" : "کپی"}
+            {copied ? (
+              <Check className="h-3 w-3 text-emerald-500" strokeWidth={2.5} />
+            ) : (
+              <Copy className="h-3 w-3" strokeWidth={2.5} />
+            )}
           </button>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-bold text-zinc-500 tnum dark:text-zinc-400">
-          <span>{formatDateTime(order.createdAt)}</span>
-          <span className="h-1 w-1 rounded-full bg-zinc-300 dark:bg-zinc-600" />
-          <span>{PAYMENT_METHOD_LABEL[method] ?? method}</span>
-        </div>
+        <StatusBadge status={order.orderStatus} />
       </div>
 
       {/* پیشرفت سفارش */}
@@ -225,7 +230,8 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
 
       {done && (
         <p className="rounded-xl bg-emerald-50 px-4 py-3 text-[12px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-          رسید جدید با موفقیت ثبت شد و در انتظار بررسی است. صفحه را رفرش کنید تا وضعیت به‌روز شود.
+          رسید جدید با موفقیت ثبت شد و در انتظار بررسی است. صفحه را رفرش کنید تا
+          وضعیت به‌روز شود.
         </p>
       )}
 
@@ -268,7 +274,9 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
               <span className="text-[12px] font-extrabold text-zinc-600 dark:text-zinc-300">
                 انتخاب تصویر رسید جدید
               </span>
-              <span className="text-[10px] text-zinc-400">jpg/png/webp تا ۲ مگابایت</span>
+              <span className="text-[10px] text-zinc-400">
+                jpg/png/webp تا ۲ مگابایت
+              </span>
             </button>
           )}
           {error && (
@@ -281,7 +289,11 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
             disabled={busy || !file}
             className="btn-gold mt-3 w-full py-3 text-xs disabled:pointer-events-none disabled:opacity-50"
           >
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+            {busy ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <UploadCloud className="h-4 w-4" />
+            )}
             {busy ? "در حال ارسال..." : "ارسال رسید جدید"}
           </button>
         </div>
@@ -290,7 +302,9 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
       {/* اقلام سفارش */}
       <div className="overflow-hidden rounded-xl border border-zinc-100 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div className="border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
-          <h2 className="text-sm font-black text-ink-950 dark:text-zinc-100">اقلام سفارش</h2>
+          <h2 className="text-sm font-black text-ink-950 dark:text-zinc-100">
+            اقلام سفارش
+          </h2>
         </div>
         <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
           {order.items.map((it, i) => {
@@ -326,7 +340,9 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
           })}
         </ul>
         <div className="flex items-center justify-between border-t border-dashed border-zinc-200 px-4 py-3 dark:border-zinc-700">
-          <span className="text-sm font-black text-ink-950 dark:text-zinc-100">جمع کل</span>
+          <span className="text-sm font-black text-ink-950 dark:text-zinc-100">
+            جمع کل
+          </span>
           <span className="text-lg font-black text-gold-700 tnum dark:text-gold-400">
             {formatPrice(order.total)}{" "}
             <span className="text-[10px] font-bold text-zinc-400">تومان</span>
@@ -338,7 +354,9 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
       <div className="overflow-hidden rounded-xl border border-zinc-100 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
           <MapPin className="h-4 w-4 text-gold-600" />
-          <h2 className="text-sm font-black text-ink-950 dark:text-zinc-100">آدرس ارسال</h2>
+          <h2 className="text-sm font-black text-ink-950 dark:text-zinc-100">
+            آدرس ارسال
+          </h2>
         </div>
         <dl className="space-y-3 p-4 text-[12px]">
           <div className="flex items-center justify-between gap-3">
@@ -356,7 +374,10 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="font-bold text-zinc-400">کد پستی</dt>
-            <dd className="font-mono font-extrabold text-zinc-700 tnum dark:text-zinc-200" dir="ltr">
+            <dd
+              className="font-mono font-extrabold text-zinc-700 tnum dark:text-zinc-200"
+              dir="ltr"
+            >
               {order.postalCode || "—"}
             </dd>
           </div>
