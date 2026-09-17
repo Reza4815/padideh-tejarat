@@ -23,41 +23,43 @@ export function AccountTabs({
     <div
       role="tablist"
       aria-label="بخش‌های حساب کاربری"
-      className="mx-auto grid w-full max-w-[600px] grid-cols-2 gap-1 rounded-2xl border border-zinc-100 bg-white p-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+      className="mx-auto w-full max-w-xs sm:max-w-sm"
     >
-      {TABS.map((t) => {
-        const active = tab === t.key;
-        return (
-          <button
-            key={t.key}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(t.key)}
-            className={cn(
-              "flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-extrabold transition-all duration-200",
-              active
-                ? "bg-gold-500 text-white shadow-[0_10px_24px_-10px_rgba(207,163,56,0.9)]"
-                : "text-zinc-500 hover:bg-gold-50 hover:text-gold-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-gold-400",
-            )}
-          >
-            <t.icon className="h-4 w-4" />
-            {t.label}
-            {t.key === "orders" && ordersCount > 0 && (
-              <span
-                className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-black tnum",
-                  active
-                    ? "bg-white/25 text-white"
-                    : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300",
-                )}
-              >
-                {toFaDigits(ordersCount)}
-              </span>
-            )}
-          </button>
-        );
-      })}
+      <div className="relative flex items-center gap-1 rounded-full border border-zinc-100 bg-zinc-50/80 p-1 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/60">
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => onChange(t.key)}
+              className={cn(
+                "relative flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-extrabold transition-all duration-300 sm:text-[12px]",
+                active
+                  ? "bg-gold-500 text-white shadow-[0_8px_20px_-8px_rgba(207,163,56,0.8)]"
+                  : "text-zinc-500 hover:bg-white hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
+              )}
+            >
+              <t.icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+              <span className="whitespace-nowrap">{t.label}</span>
+              {t.key === "orders" && ordersCount > 0 && (
+                <span
+                  className={cn(
+                    "grid h-4 min-w-4 shrink-0 place-items-center rounded-full px-1 text-[9px] font-black tnum",
+                    active
+                      ? "bg-white/25 text-white"
+                      : "bg-gold-500/15 text-gold-600 dark:bg-gold-500/25 dark:text-gold-400",
+                  )}
+                >
+                  {toFaDigits(ordersCount)}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
