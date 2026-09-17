@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Clock, Menu, Phone, Search, ShoppingBag, X } from "lucide-react";
 import { useCart } from "@/components/site/cart-provider";
 import { ThemeToggle } from "@/components/site/theme-toggle";
-import { UserMenu } from "@/components/site/user-menu";
+import { UserMenu } from "@/components/site/header/user-menu";
 import { cn } from "@/lib/utils";
 
 const NAV = [

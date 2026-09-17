@@ -13,9 +13,16 @@ export const metadata: Metadata = {
   description: "مشاهده پروفایل و سفارش‌های من.",
 };
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const user = await getCurrentUser().catch(() => null);
   if (!user) redirect("/auth/login?redirect=/account");
+
+  const { tab } = await searchParams;
+  const initialTab = tab === "orders" ? "orders" : "profile";
 
   // سفارش‌های کاربر: هم از طریق user_id و هم شماره موبایل (سفارش‌های قدیمی)
   const rows = await db
@@ -26,7 +33,11 @@ export default async function AccountPage() {
 
   return (
     <div className="bg-gold-radial">
-      <AccountView user={publicUser(user)} orders={rows} />
+      <AccountView
+        user={publicUser(user)}
+        orders={rows}
+        initialTab={initialTab}
+      />
     </div>
   );
 }

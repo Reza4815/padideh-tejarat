@@ -1,16 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, MapPin, ReceiptText, ShoppingBag, User } from "lucide-react";
+import { ArrowRight, CalendarDays } from "lucide-react";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, users, type OrderRow } from "@/db/schema";
 import { UserNoteEditor } from "@/components/admin/user-note-editor";
-import {
-  PAYMENT_METHOD_LABEL,
-  PAYMENT_STATUS_LABEL,
-  type PaymentMethod,
-  type PaymentStatus,
-} from "@/lib/payment";
+import { UserDetailTabs } from "@/components/admin/user-detail-tabs";
+import { UserOrdersTable } from "@/components/admin/user-orders-table";
+import { PaymentSummaryCards } from "@/components/admin/payment-summary-cards";
+import { UserAddressesCard } from "@/components/admin/user-addresses-card";
 import { formatDateTime, formatPrice, toFaDigits } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +65,9 @@ export default async function AdminUserDetailPage({
   }
   const addresses = [...addrMap.values()];
 
+  const name = user.name?.trim();
+  const initial = (name ? name[0] : user.phone.slice(-2)) || "؟";
+
   return (
     <div className="space-y-5">
       <Link
@@ -77,200 +78,70 @@ export default async function AdminUserDetailPage({
         بازگشت به فهرست کاربران
       </Link>
 
-      {/* بخش ۱: اطلاعات کاربر */}
-      <section className="rounded-2xl border border-zinc-100 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="flex items-center gap-1.5 text-base font-black text-ink-950 dark:text-zinc-100">
-          <User className="h-4.5 w-4.5 text-gold-600" />
-          <span className="tnum" dir="ltr">
-            {user.phone}
-          </span>
-        </h1>
-        <dl className="mt-4 grid grid-cols-1 gap-3 text-[13px] sm:grid-cols-2">
-          <div className="rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/60">
-            <dt className="text-[11px] font-bold text-zinc-400">نام</dt>
-            <dd className="mt-0.5 font-extrabold text-zinc-700 dark:text-zinc-200">
-              {user.name || "—"}
-            </dd>
+      {/* اطلاعات کاربر */}
+      <section className="flex flex-wrap items-center gap-4 rounded-xl border border-zinc-100 bg-white p-5 sm:flex-nowrap dark:border-zinc-800 dark:bg-zinc-900">
+        <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 via-gold-500 to-gold-700 text-xl font-black text-zinc-950 shadow-[0_10px_24px_-10px_rgba(207,163,56,0.9)]">
+          {initial}
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-black tracking-tight text-ink-950 dark:text-zinc-100">
+            <span className="tnum" dir="ltr">
+              {user.phone}
+            </span>
+          </h1>
+          {name ? (
+            <p className="mt-0.5 truncate text-sm font-bold text-zinc-500 dark:text-zinc-400">
+              {name}
+            </p>
+          ) : (
+            <p className="mt-0.5 text-[12px] font-bold text-zinc-400">—</p>
+          )}
+          <p className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 tnum dark:text-zinc-500">
+            <CalendarDays className="h-3.5 w-3.5" />
+            عضویت از {formatDateTime(user.createdAt)}
+          </p>
+        </div>
+
+        <div className="flex w-full shrink-0 items-center justify-between gap-4 rounded-xl bg-gold-50 px-4 py-3 sm:w-auto sm:flex-col sm:items-start dark:bg-gold-950/30">
+          <div>
+            <p className="text-[10px] font-bold text-zinc-400">
+              تعداد سفارش
+            </p>
+            <p className="text-lg font-black text-ink-950 tnum dark:text-zinc-100">
+              {toFaDigits(mine.length)}
+            </p>
           </div>
-          <div className="rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/60">
-            <dt className="text-[11px] font-bold text-zinc-400">ایمیل</dt>
-            <dd
-              className="mt-0.5 font-extrabold text-zinc-700 dark:text-zinc-200"
-              dir="ltr"
-              style={{ textAlign: "right" }}
-            >
-              {user.email || "—"}
-            </dd>
+          <div className="text-left sm:text-right">
+            <p className="text-[10px] font-bold text-zinc-400">مجموع خرید</p>
+            <p className="text-sm font-black text-gold-700 tnum dark:text-gold-400">
+              {formatPrice(sum(mine))}
+              <span className="mr-1 text-[10px] font-bold text-zinc-400">
+                تومان
+              </span>
+            </p>
           </div>
-          <div className="rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/60">
-            <dt className="text-[11px] font-bold text-zinc-400">تاریخ ثبت‌نام</dt>
-            <dd className="mt-0.5 font-extrabold text-zinc-700 tnum dark:text-zinc-200">
-              {formatDateTime(user.createdAt)}
-            </dd>
-          </div>
-          <div className="rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/60">
-            <dt className="text-[11px] font-bold text-zinc-400">
-              مجموع خرید / تعداد سفارش
-            </dt>
-            <dd className="mt-0.5 font-extrabold text-gold-700 tnum dark:text-gold-400">
-              {formatPrice(sum(mine))} تومان • {toFaDigits(mine.length)} سفارش
-            </dd>
-          </div>
-        </dl>
+        </div>
       </section>
 
       {/* یادداشت مدیر (ویرایش درون‌خطی) */}
       <UserNoteEditor userId={user.id} initialNote={user.adminNote} />
 
-      {/* بخش ۲: تاریخچه سفارش‌ها */}
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-1.5 text-sm font-black text-ink-950 dark:text-zinc-100">
-          <ShoppingBag className="h-4 w-4 text-gold-600" />
-          تاریخچه سفارش‌ها
-          <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-extrabold text-zinc-500 tnum dark:bg-zinc-800 dark:text-zinc-300">
-            {toFaDigits(mine.length)}
-          </span>
-        </h2>
-        {mine.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-zinc-200 bg-white py-10 text-center text-[13px] font-bold text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900">
-            سفارشی برای این کاربر ثبت نشده است
-          </p>
-        ) : (
-          <div className="overflow-x-auto rounded-2xl border border-zinc-100 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-            <table className="w-full min-w-[760px]">
-              <thead>
-                <tr className="bg-zinc-50/70 text-[10px] font-extrabold text-zinc-400 dark:bg-zinc-800/60">
-                  <th className="admin-th">کد پیگیری</th>
-                  <th className="admin-th">تاریخ</th>
-                  <th className="admin-th">مبلغ</th>
-                  <th className="admin-th">روش پرداخت</th>
-                  <th className="admin-th">وضعیت پرداخت</th>
-                  <th className="admin-th">وضعیت سفارش</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {mine.map((o) => {
-                  const pm = (o.paymentMethod as PaymentMethod) ?? "online";
-                  const ps = (o.paymentStatus as PaymentStatus) ?? "pending";
-                  return (
-                    <tr
-                      key={o.id}
-                      className="transition hover:bg-gold-50/50 dark:hover:bg-zinc-800/60"
-                    >
-                      <td className="admin-td">
-                        <Link
-                          href={`/admin/orders#order-${o.id}`}
-                          className="font-mono text-[12px] font-extrabold text-gold-700 hover:underline dark:text-gold-400"
-                          dir="ltr"
-                        >
-                          {o.trackingCode ?? o.id.slice(0, 8).toUpperCase()}
-                        </Link>
-                      </td>
-                      <td className="admin-td text-[12px] tnum">
-                        {formatDateTime(o.createdAt)}
-                      </td>
-                      <td className="admin-td font-extrabold tnum">
-                        {formatPrice(o.total)}
-                      </td>
-                      <td className="admin-td text-[12px]">
-                        {PAYMENT_METHOD_LABEL[pm] ?? pm}
-                      </td>
-                      <td className="admin-td text-[12px]">
-                        {PAYMENT_STATUS_LABEL[ps] ?? ps}
-                      </td>
-                      <td className="admin-td text-[12px]">{o.orderStatus}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      {/* بخش ۳: خلاصه پرداخت */}
-      <section className="rounded-2xl border border-zinc-100 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="flex items-center gap-1.5 text-sm font-black text-ink-950 dark:text-zinc-100">
-          <ReceiptText className="h-4 w-4 text-gold-600" />
-          خلاصه پرداخت
-        </h2>
-        <dl className="mt-4 grid grid-cols-1 gap-3 text-[13px] sm:grid-cols-2">
-          <div className="rounded-xl bg-emerald-50/70 px-4 py-3 dark:bg-emerald-950/30">
-            <dt className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-              آنلاین موفق (تأییدشده)
-            </dt>
-            <dd className="mt-0.5 font-extrabold text-zinc-800 tnum dark:text-zinc-100">
-              {toFaDigits(onlineOk.length)} سفارش • {formatPrice(sum(onlineOk))}{" "}
-              تومان
-            </dd>
-          </div>
-          <div className="rounded-xl bg-emerald-50/70 px-4 py-3 dark:bg-emerald-950/30">
-            <dt className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-              کارت‌به‌کارت تأییدشده
-            </dt>
-            <dd className="mt-0.5 font-extrabold text-zinc-800 tnum dark:text-zinc-100">
-              {toFaDigits(cardOk.length)} سفارش • {formatPrice(sum(cardOk))}{" "}
-              تومان
-            </dd>
-          </div>
-          <div className="rounded-xl bg-red-50/70 px-4 py-3 dark:bg-red-950/30">
-            <dt className="text-[11px] font-bold text-red-600 dark:text-red-300">
-              رسیدهای ردشده
-            </dt>
-            <dd className="mt-0.5 font-extrabold text-zinc-800 tnum dark:text-zinc-100">
-              {toFaDigits(rejected.length)} مورد
-            </dd>
-          </div>
-          <div className="rounded-xl bg-amber-50/70 px-4 py-3 dark:bg-amber-950/30">
-            <dt className="text-[11px] font-bold text-amber-700 dark:text-amber-300">
-              در انتظار پرداخت/بررسی
-            </dt>
-            <dd className="mt-0.5 font-extrabold text-zinc-800 tnum dark:text-zinc-100">
-              {toFaDigits(pending.length)} سفارش • {formatPrice(sum(pending))}{" "}
-              تومان
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      {/* بخش ۴: آدرس‌ها */}
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-1.5 text-sm font-black text-ink-950 dark:text-zinc-100">
-          <MapPin className="h-4 w-4 text-gold-600" />
-          آدرس‌های استفاده‌شده
-          <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-extrabold text-zinc-500 tnum dark:bg-zinc-800 dark:text-zinc-300">
-            {toFaDigits(addresses.length)}
-          </span>
-        </h2>
-        {addresses.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-zinc-200 bg-white py-10 text-center text-[13px] font-bold text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900">
-            آدرسی ثبت نشده است
-          </p>
-        ) : (
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {addresses.map((o) => (
-              <li
-                key={o.id}
-                className="rounded-2xl border border-zinc-100 bg-white p-4 text-[12px] leading-6 dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <p className="font-extrabold text-zinc-700 dark:text-zinc-200">
-                  {o.province} • {o.city}
-                </p>
-                <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                  {o.address}
-                </p>
-                <p className="mt-1 text-zinc-500 tnum dark:text-zinc-400">
-                  کد پستی:{" "}
-                  <span dir="ltr" className="tnum">
-                    {o.postalCode || "—"}
-                  </span>
-                  {o.plateNumber ? ` • پلاک: ${o.plateNumber}` : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* تب‌ها */}
+      <UserDetailTabs
+        ordersCount={mine.length}
+        addressesCount={addresses.length}
+        orders={<UserOrdersTable orders={mine} />}
+        payments={
+          <PaymentSummaryCards
+            onlineOk={{ count: onlineOk.length, total: sum(onlineOk) }}
+            cardOk={{ count: cardOk.length, total: sum(cardOk) }}
+            rejected={{ count: rejected.length, total: sum(rejected) }}
+            pending={{ count: pending.length, total: sum(pending) }}
+          />
+        }
+        addresses={<UserAddressesCard addresses={addresses} />}
+      />
     </div>
   );
 }
