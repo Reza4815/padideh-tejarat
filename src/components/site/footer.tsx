@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { AtSign, Clock, MapPin, MessageCircle, Phone, Send, ShieldCheck } from "lucide-react";
+import {
+  AtSign,
+  Clock,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Send,
+  ShieldCheck,
+} from "lucide-react";
 import type { CategoryRow } from "@/db/schema";
 import type { ContactContent, FooterContent } from "@/lib/content";
 import { Logo } from "@/components/site/header";
@@ -18,7 +26,9 @@ export function Footer({
       <div className="container-x grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
         <div>
           <Logo />
-          <p className="mt-5 max-w-sm text-[13px] leading-7 text-zinc-500">{footer.about}</p>
+          <p className="mt-5 max-w-sm text-[13px] leading-7 text-zinc-500">
+            {footer.about}
+          </p>
           <div className="mt-5 flex items-center gap-2">
             {[
               { icon: AtSign, label: "اینستاگرام" },
@@ -35,6 +45,15 @@ export function Footer({
               </a>
             ))}
           </div>
+
+          {/* 👇 لوگوی اینماد اینجا اضافه شد */}
+          <div className="mt-6">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=8174210&Code=HOfzVKozsC8buqryB8vlummzwZxBDXCC'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=8174210&Code=HOfzVKozsC8buqryB8vlummzwZxBDXCC' alt='' style='cursor:pointer' code='HOfzVKozsC8buqryB8vlummzwZxBDXCC'></a>`,
+              }}
+            />
+          </div>
         </div>
 
         <div>
@@ -49,7 +68,10 @@ export function Footer({
               { label: "تماس با ما", href: "/#contact" },
             ].map((l) => (
               <li key={l.label}>
-                <Link href={l.href} className="inline-flex items-center gap-2 transition hover:text-gold-700">
+                <Link
+                  href={l.href}
+                  className="inline-flex items-center gap-2 transition hover:text-gold-700"
+                >
                   <span className="h-1 w-1 rounded-full bg-gold-400" />
                   {l.label}
                 </Link>
@@ -85,7 +107,9 @@ export function Footer({
             {contact.phones.slice(0, 2).map((p) => (
               <li key={p} className="flex items-center gap-2.5">
                 <Phone className="h-4 w-4 shrink-0 text-gold-500" />
-                <span className="tnum font-bold text-zinc-600" dir="ltr">{p}</span>
+                <span className="tnum font-bold text-zinc-600" dir="ltr">
+                  {p}
+                </span>
               </li>
             ))}
             <li className="flex items-center gap-2.5">
@@ -104,7 +128,9 @@ export function Footer({
         <div className="container-x flex h-11 flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-400">
           <p>{footer.note}</p>
           <div className="flex items-center gap-4">
-            <span dir="ltr" className="font-bold tracking-widest">PADIDEH TEJARAT ALVAND</span>
+            <span dir="ltr" className="font-bold tracking-widest">
+              PADIDEH TEJARAT ALVAND
+            </span>
             <Link href="/admin" className="transition hover:text-gold-400">
               ورود مدیران
             </Link>

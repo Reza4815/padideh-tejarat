@@ -1,10 +1,31 @@
 import type { Metadata, Viewport } from "next";
-import { Vazirmatn } from "next/font/google";
+import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import "./globals.css";
 
-const vazirmatn = Vazirmatn({
-  subsets: ["arabic"],
+const vazirmatn = localFont({
+  src: [
+    {
+      path: "../../public/fonts/Vazirmatn-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Vazirmatn-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Vazirmatn-SemiBold.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Vazirmatn-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-vazir",
   display: "swap",
 });
@@ -24,6 +45,10 @@ export const metadata: Metadata = {
     "لنت ترمز",
     "قطعات موتور",
   ],
+  // 👇 متاتگ اینماد اینجا اضافه شد
+  other: {
+    enamad: "59149916",
+  },
 };
 
 export const viewport: Viewport = {

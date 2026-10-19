@@ -1,6 +1,7 @@
-import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { getSessionAdmin } from "@/lib/auth";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 
 const ALLOWED: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -38,12 +39,19 @@ export async function POST(req: Request) {
     );
   }
 
-  const name = `products/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+  const filename = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+  // ✅ مسیر جدید: storage/uploads/products (بیرون از public)
+  const uploadDir = path.join(process.cwd(), "storage", "uploads", "products");
+  const filePath = path.join(uploadDir, filename);
 
-  const blob = await put(name, file, {
-    access: "public",
-    contentType: file.type,
-  });
+  await mkdir(uploadDir, { recursive: true });
 
-  return NextResponse.json({ ok: true, url: blob.url });
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  await writeFile(filePath, buffer);
+
+  // ✅ URL از /uploads/... استفاده می‌کنه که route جدید سروش می‌کنه
+  const url = `/uploads/products/${filename}`;
+
+  return NextResponse.json({ ok: true, url });
 }
