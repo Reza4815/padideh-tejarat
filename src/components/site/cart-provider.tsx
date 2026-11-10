@@ -21,6 +21,7 @@ export type CartItem = {
   price: number;
   image: string;
   partNumber: string;
+  priceOnRequest?: boolean;
   qty: number;
 };
 
@@ -78,7 +79,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           id: string;
           name: string;
           slug: string;
-          price: number;
+          price: number | null;
+          priceOnRequest: boolean;
           stock: number;
           partNumber: string;
           images: string[];
@@ -89,6 +91,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         .map((s) => {
           const p = data.prices.find((x) => x.id === s.id);
           if (!p) return null; // محصول حذف/غیرفعال شده
+          // محصولات استعلامی قیمت مشخص ندارند و نباید در سبد بمانند
+          if (p.priceOnRequest || p.price == null) return null;
           return {
             id: p.id,
             slug: p.slug,
@@ -149,6 +153,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const add = useCallback(
     (item: Omit<CartItem, "qty">, qty = 1, options?: AddOptions) => {
+      if (item.priceOnRequest) return;
       setItems((prev) => {
         const found = prev.find((p) => p.id === item.id);
         if (found) {

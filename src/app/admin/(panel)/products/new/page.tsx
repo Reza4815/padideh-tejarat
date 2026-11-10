@@ -13,6 +13,7 @@ export default async function NewProductPage() {
   return (
     <ProductForm
       categories={cats.map((c) => ({ id: c.id, name: c.name }))}
+      initial={{ priceOnRequest: false }}
     />
   );
 }

@@ -36,3 +36,22 @@ export function discountPercent(price: number, compareAt?: number | null) {
   if (!compareAt || compareAt <= price) return 0;
   return Math.round(((compareAt - price) / compareAt) * 100);
 }
+
+const STORE_PHONE_FALLBACK = "021-33901234";
+
+export function normalizePhone(raw?: string | null) {
+  const value = (raw ?? "").trim();
+  if (!value) return "";
+  return value
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+    .replace(/[^\d+]/g, "");
+}
+
+export function resolveStorePhone(phone?: string | null) {
+  return (
+    normalizePhone(phone) ||
+    normalizePhone(process.env.NEXT_PUBLIC_STORE_PHONE) ||
+    normalizePhone(STORE_PHONE_FALLBACK)
+  );
+}

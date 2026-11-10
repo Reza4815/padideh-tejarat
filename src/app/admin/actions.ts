@@ -36,6 +36,7 @@ export type ProductInput = {
   categoryId: string | null;
   price: number;
   compareAtPrice: number | null;
+  priceOnRequest?: boolean;
   stock: number;
   shortDesc: string;
   description: string;
@@ -72,12 +73,13 @@ export async function saveProduct(input: ProductInput) {
     brand: input.brand.trim(),
     partNumber: input.partNumber.trim(),
     categoryId: input.categoryId || null,
-    price: Math.max(0, Math.floor(Number(input.price) || 0)),
+    price: input.priceOnRequest ? 0 : Math.max(0, Math.floor(Number(input.price) || 0)),
     compareAtPrice:
-      input.compareAtPrice && Number(input.compareAtPrice) > 0
+      !input.priceOnRequest && input.compareAtPrice && Number(input.compareAtPrice) > 0
         ? Math.floor(Number(input.compareAtPrice))
         : null,
-    stock: Math.max(0, Math.floor(Number(input.stock) || 0)),
+    priceOnRequest: Boolean(input.priceOnRequest),
+    stock: input.priceOnRequest ? 0 : Math.max(0, Math.floor(Number(input.stock) || 0)),
     shortDesc: input.shortDesc.trim(),
     description: input.description.trim(),
     benefits: input.benefits.map((b) => b.trim()).filter(Boolean),

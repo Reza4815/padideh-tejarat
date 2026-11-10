@@ -16,6 +16,7 @@ import {
 } from "@/components/site/home-sections";
 import { ProductCardView } from "@/components/site/product-card";
 import { Reveal } from "@/components/site/reveal";
+import { resolveStorePhone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ export default async function HomePage() {
   ]);
 
   const featuredItems = featured.items.length > 0 ? featured.items : [];
+  const storePhone = resolveStorePhone(contact.phones?.[0]);
 
   return (
     <>
@@ -86,7 +88,7 @@ export default async function HomePage() {
             <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
               {featuredItems.map((p, i) => (
                 <Reveal key={p.id} delay={(i % 4) * 70}>
-                  <ProductCardView product={p} />
+                  <ProductCardView product={p} phone={storePhone} />
                 </Reveal>
               ))}
             </div>

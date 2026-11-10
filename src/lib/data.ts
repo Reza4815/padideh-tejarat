@@ -400,6 +400,7 @@ export type ProductCard = {
   partNumber: string;
   price: number;
   compareAtPrice: number | null;
+  priceOnRequest: boolean;
   stock: number;
   image: string;
   featured: boolean;
@@ -416,6 +417,7 @@ function toCard(row: ProductRow, cat?: CategoryRow | null): ProductCard {
     partNumber: row.partNumber,
     price: row.price,
     compareAtPrice: row.compareAtPrice,
+    priceOnRequest: row.priceOnRequest,
     stock: row.stock,
     image: row.images?.[0] ?? "",
     featured: row.featured,

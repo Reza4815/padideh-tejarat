@@ -105,6 +105,7 @@ export async function POST(req: Request) {
         const dbp = i.id ? byId.get(i.id) : undefined;
         if (!dbp) return null;
         if (!dbp.active) return null;
+        if (dbp.priceOnRequest) return null;
 
         const qty = Math.max(1, Math.min(999, Math.floor(Number(i.qty) || 1)));
         const safeQty = dbp.stock > 0 ? Math.min(qty, dbp.stock) : qty;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, desc, eq, inArray, not } from "drizzle-orm";
+import { and, desc, eq, inArray, not, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 
@@ -22,7 +22,8 @@ export async function POST(request: Request) {
           id: products.id,
           name: products.name,
           slug: products.slug,
-          price: products.price,
+          price: sql<number | null>`case when ${products.priceOnRequest} then null else ${products.price} end`,
+          priceOnRequest: products.priceOnRequest,
           compareAtPrice: products.compareAtPrice,
           stock: products.stock,
           partNumber: products.partNumber,
@@ -69,7 +70,8 @@ export async function POST(request: Request) {
         id: products.id,
         name: products.name,
         slug: products.slug,
-        price: products.price,
+        price: sql<number | null>`case when ${products.priceOnRequest} then null else ${products.price} end`,
+        priceOnRequest: products.priceOnRequest,
         compareAtPrice: products.compareAtPrice,
         stock: products.stock,
         partNumber: products.partNumber,

@@ -36,6 +36,7 @@ export const products = pgTable(
     }),
     price: integer("price").notNull().default(0),
     compareAtPrice: integer("compare_at_price"),
+    priceOnRequest: boolean("price_on_request").notNull().default(false),
     stock: integer("stock").notNull().default(0),
     shortDesc: text("short_desc").notNull().default(""),
     description: text("description").notNull().default(""),

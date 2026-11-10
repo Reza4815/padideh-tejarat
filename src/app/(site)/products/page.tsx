@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { PackageSearch } from "lucide-react";
 import { listBrands, listCategories, listProductCards } from "@/lib/data";
+import { getSiteContent } from "@/lib/content";
 import { ShopFilters } from "@/components/site/shop-filters";
 import { ProductCardView } from "@/components/site/product-card";
 import { Reveal } from "@/components/site/reveal";
-import { toFaDigits } from "@/lib/utils";
+import { resolveStorePhone, toFaDigits } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -28,13 +29,15 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const sort = sortRaw === "price-asc" || sortRaw === "price-desc" ? sortRaw : "newest";
   const inStock = one(sp.stock) === "1";
 
-  const [{ items, total }, categories, brands] = await Promise.all([
+  const [{ items, total }, categories, brands, contact] = await Promise.all([
     listProductCards({ q, cat, brand, sort, inStock }),
     listCategories(),
     listBrands(),
+    getSiteContent("contact"),
   ]);
 
   const activeCat = categories.find((c) => c.slug === cat);
+  const storePhone = resolveStorePhone(contact.phones?.[0]);
 
   return (
     <div className="bg-gold-radial">
@@ -74,7 +77,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {items.map((p, i) => (
               <Reveal key={p.id} delay={(i % 4) * 60}>
-                <ProductCardView product={p} />
+                <ProductCardView product={p} phone={storePhone} />
               </Reveal>
             ))}
           </div>

@@ -34,6 +34,11 @@ type SuggestedProduct = {
   partNumber: string;
 };
 
+type RawSuggestedProduct = Omit<SuggestedProduct, "price"> & {
+  price: number | null;
+  priceOnRequest: boolean;
+};
+
 export function CartView() {
   const router = useRouter();
   const {
@@ -74,8 +79,11 @@ export function CartView() {
             excludeIds: items.map((i) => i.id),
           }),
         });
-        const data = (await res.json()) as { prices?: SuggestedProduct[] };
-        if (mounted) setSuggested(data.prices ?? []);
+        const data = (await res.json()) as { prices?: RawSuggestedProduct[] };
+        const available = (data.prices ?? []).flatMap((p) =>
+          p.priceOnRequest || p.price == null ? [] : [{ ...p, price: p.price }],
+        );
+        if (mounted) setSuggested(available);
       } catch {
         /* ignore */
       }

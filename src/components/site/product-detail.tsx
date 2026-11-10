@@ -7,6 +7,7 @@ import {
   Copy,
   Minus,
   Package,
+  Phone,
   Plus,
   RotateCcw,
   ShieldCheck,
@@ -26,6 +27,7 @@ export type ProductDetailDto = {
   partNumber: string;
   price: number;
   compareAtPrice: number | null;
+  priceOnRequest: boolean;
   stock: number;
   shortDesc: string;
   description: string;
@@ -37,14 +39,16 @@ export type ProductDetailDto = {
   categorySlug: string | null;
 };
 
-export function ProductDetailView({ product }: { product: ProductDetailDto }) {
+export function ProductDetailView({ product }: { product: ProductDetailDto; phone?: string }) {
   const { add } = useCart();
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [copied, setCopied] = useState(false);
 
-  const out = product.stock <= 0;
-  const off = discountPercent(product.price, product.compareAtPrice);
+  const onRequest = product.priceOnRequest;
+  const out = !onRequest && product.stock <= 0;
+  const off = onRequest ? 0 : discountPercent(product.price, product.compareAtPrice);
+  const tel = "+989024872021";
   const images = product.images.length ? product.images : [""];
 
   async function copyOem() {
@@ -150,26 +154,40 @@ export function ProductDetailView({ product }: { product: ProductDetailDto }) {
             </Reveal>
           ) : null}
 
-          <Reveal delay={140}>
-            <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1">
-              <span className="text-3xl font-black text-ink-950 tnum sm:text-4xl">
-                {formatPrice(product.price)}
-              </span>
-              <span className="pb-1 text-xs font-bold text-zinc-400">تومان</span>
-              {product.compareAtPrice ? (
-                <span className="pb-1 text-sm font-bold text-zinc-400 line-through tnum">
-                  {formatPrice(product.compareAtPrice)}
+          {onRequest ? (
+            <Reveal delay={140}>
+              <div className="mt-6 rounded-2xl border border-gold-200 bg-gold-50/70 p-5">
+                <p className="text-sm font-extrabold leading-7 text-gold-800">
+                  برای استعلام موجودی و قیمت با ما تماس بگیرید
+                </p>
+                <a href={`tel:${tel}`} className="btn-gold mt-4 flex w-full items-center justify-center px-6 py-3 text-xs">
+                  <Phone className="h-4 w-4" />
+                  تماس با فروشگاه
+                </a>
+              </div>
+            </Reveal>
+          ) : (
+            <Reveal delay={140}>
+              <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1">
+                <span className="text-3xl font-black text-ink-950 tnum sm:text-4xl">
+                  {formatPrice(product.price)}
                 </span>
-              ) : null}
-            </div>
-            <p className={cn("mt-2 text-xs font-extrabold tnum", out ? "text-red-500" : "text-emerald-600")}>
-              {out
-                ? "این کالا در حال حاضر ناموجود است"
-                : `موجود در انبار — ${toFaDigits(product.stock)} عدد`}
-            </p>
-          </Reveal>
+                <span className="pb-1 text-xs font-bold text-zinc-400">تومان</span>
+                {product.compareAtPrice ? (
+                  <span className="pb-1 text-sm font-bold text-zinc-400 line-through tnum">
+                    {formatPrice(product.compareAtPrice)}
+                  </span>
+                ) : null}
+              </div>
+              <p className={cn("mt-2 text-xs font-extrabold tnum", out ? "text-red-500" : "text-emerald-600")}>
+                {out
+                  ? "این کالا در حال حاضر ناموجود است"
+                  : `موجود در انبار — ${toFaDigits(product.stock)} عدد`}
+              </p>
+            </Reveal>
+          )}
 
-          {!out && (
+          {!onRequest && !out && (
             <Reveal delay={200}>
               <div className="mt-7 flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-1 rounded-full border border-zinc-200 p-1.5">
@@ -200,6 +218,7 @@ export function ProductDetailView({ product }: { product: ProductDetailDto }) {
                         price: product.price,
                         image: product.images[0] ?? "",
                         partNumber: product.partNumber,
+                        priceOnRequest: product.priceOnRequest,
                       },
                       qty,
                     )

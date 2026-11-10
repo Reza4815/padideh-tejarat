@@ -91,14 +91,21 @@ export function CheckoutView() {
           body: JSON.stringify({ ids: d.items.map((i) => i.id) }),
         });
         const data = (await res.json()) as {
-          prices?: { id: string; name: string; price: number; partNumber: string }[];
+          prices?: {
+            id: string;
+            name: string;
+            price: number | null;
+            priceOnRequest: boolean;
+            partNumber: string;
+          }[];
         };
         if (!mounted) return;
         const byId = new Map((data.prices ?? []).map((p) => [p.id, p]));
         setResolved(
           d.items.flatMap((i) => {
             const p = byId.get(i.id);
-            return p ? [{ id: p.id, name: p.name, partNumber: p.partNumber, price: p.price, qty: i.qty }] : [];
+            if (!p || p.priceOnRequest || p.price == null) return [];
+            return [{ id: p.id, name: p.name, partNumber: p.partNumber, price: p.price, qty: i.qty }];
           }),
         );
       } catch {

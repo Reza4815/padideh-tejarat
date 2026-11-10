@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { getProductBySlug, getRelatedProducts } from "@/lib/data";
+import { getSiteContent } from "@/lib/content";
+import { resolveStorePhone } from "@/lib/utils";
 import { ProductDetailView, type ProductDetailDto } from "@/components/site/product-detail";
 import { ProductCardView } from "@/components/site/product-card";
 import { Reveal } from "@/components/site/reveal";
@@ -27,7 +29,11 @@ export default async function ProductPage({ params }: Props) {
   if (!data) notFound();
 
   const { product, category } = data;
-  const related = await getRelatedProducts(product.categoryId, product.id, 4).catch(() => []);
+  const [related, contact] = await Promise.all([
+    getRelatedProducts(product.categoryId, product.id, 4).catch(() => []),
+    getSiteContent("contact"),
+  ]);
+  const storePhone = resolveStorePhone(contact.phones?.[0]);
 
   const dto: ProductDetailDto = {
     id: product.id,
@@ -37,6 +43,7 @@ export default async function ProductPage({ params }: Props) {
     partNumber: product.partNumber,
     price: product.price,
     compareAtPrice: product.compareAtPrice,
+    priceOnRequest: product.priceOnRequest,
     stock: product.stock,
     shortDesc: product.shortDesc,
     description: product.description,
@@ -73,7 +80,7 @@ export default async function ProductPage({ params }: Props) {
           </nav>
         </Reveal>
 
-        <ProductDetailView product={dto} />
+        <ProductDetailView product={dto} phone={storePhone} />
 
         {related.length > 0 ? (
           <section className="mt-16 border-t border-zinc-100 pt-12 sm:mt-20">
@@ -93,7 +100,7 @@ export default async function ProductPage({ params }: Props) {
             <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
               {related.map((p, i) => (
                 <Reveal key={p.id} delay={(i % 4) * 60}>
-                  <ProductCardView product={p} />
+                  <ProductCardView product={p} phone={storePhone} />
                 </Reveal>
               ))}
             </div>
