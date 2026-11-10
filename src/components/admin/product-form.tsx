@@ -383,16 +383,14 @@ export function ProductForm({
               قیمت و موجودی
             </h2>
 
-            {/* سوییچ استعلام قیمت - استایل اصلاح شده برای دارک مود */}
-            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-amber-500/40 bg-amber-500/5 px-3 py-2.5 dark:border-amber-500/50 dark:bg-amber-500/10">
-              <label className="text-[13px] font-extrabold text-zinc-700 dark:text-amber-400">
+            {/* سوییچ استعلام قیمت - بدون className روی Switch، با کادر طلایی واضح */}
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border-2 border-amber-500/50 bg-amber-500/10 px-3 py-2.5 dark:border-amber-400/60 dark:bg-amber-500/15">
+              <label className="text-[13px] font-extrabold text-zinc-800 dark:text-amber-300">
                 استعلام قیمت / تماس بگیرید
               </label>
-              <Switch
-                checked={priceOnRequest}
-                onChange={setPriceOnRequest}
-                className="border border-zinc-400 dark:border-zinc-500 data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-zinc-400 dark:data-[state=unchecked]:bg-zinc-600"
-              />
+              <div className="rounded-full ring-2 ring-amber-500/40 dark:ring-amber-400/50">
+                <Switch checked={priceOnRequest} onChange={setPriceOnRequest} />
+              </div>
             </div>
 
             {priceOnRequest && (
