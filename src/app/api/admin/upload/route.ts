@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     await client.ensureDir("products");
 
     // ✅ رفتن به داخل پوشه products (حل مشکل 553)
-    await client.cwd("products");
+    await client.cd("products");
 
     // آپلود فایل با نام ساده (چون الان داخل پوشه هستیم)
     const arrayBuffer = await file.arrayBuffer();

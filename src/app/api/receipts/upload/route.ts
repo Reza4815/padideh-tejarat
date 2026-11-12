@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       await client.ensureDir("receipts");
 
       // ✅ رفتن به داخل پوشه receipts (حل مشکل 553)
-      await client.cwd("receipts");
+      await client.cd("receipts");
 
       // آپلود فایل با نام ساده (چون الان داخل پوشه هستیم)
       const buffer = Buffer.from(await file.arrayBuffer());
