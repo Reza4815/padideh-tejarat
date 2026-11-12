@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionAdmin } from "@/lib/auth";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { Client } from "basic-ftp";
+import { Readable } from "stream";
 
 const ALLOWED: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -19,40 +19,48 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const file = form.get("file");
-  if (!(file instanceof File)) {
-    return NextResponse.json(
-      { error: "فایلی ارسال نشده است" },
-      { status: 400 },
-    );
-  }
-  if (file.size > MAX_SIZE) {
-    return NextResponse.json(
-      { error: "حجم فایل بیش از ۴ مگابایت است" },
-      { status: 400 },
-    );
-  }
+
+  if (!(file instanceof File))
+    return NextResponse.json({ error: "فایلی ارسال نشده" }, { status: 400 });
+  if (file.size > MAX_SIZE)
+    return NextResponse.json({ error: "حجم فایل زیاد است" }, { status: 400 });
+
   const ext = ALLOWED[file.type];
-  if (!ext) {
-    return NextResponse.json(
-      { error: "فرمت تصویر مجاز نیست" },
-      { status: 400 },
-    );
-  }
+  if (!ext)
+    return NextResponse.json({ error: "فرمت مجاز نیست" }, { status: 400 });
 
   const filename = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
 
-  // ✅ برگشت به مسیر public (همون جایی که فایل‌های قبلی بودند)
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "products");
-  const filePath = path.join(uploadDir, filename);
+  const client = new Client();
+  try {
+    // اتصال به FTP چابکان
+    await client.access({
+      host: process.env.FTP_HOST || "services.irn1.chabokan.net",
+      user: process.env.FTP_USER || "padide-main",
+      password: process.env.FTP_PASS,
+      secure: false,
+    });
 
-  await mkdir(uploadDir, { recursive: true });
+    // ساخت پوشه products در FTP (اگر نباشد)
+    await client.ensureDir("products");
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  await writeFile(filePath, buffer);
+    // آپلود فایل
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const stream = Readable.from(buffer);
+    await client.uploadFrom(stream, filename);
+  } catch (err) {
+    console.error("FTP Upload Error:", err);
+    return NextResponse.json(
+      { error: "آپلود به FTP ناموفق بود" },
+      { status: 500 },
+    );
+  } finally {
+    client.close();
+  }
 
-  // ✅ URL همان مسیر قبلی که Next.js خودش سرو می‌کند
-  const url = `/uploads/products/${filename}`;
+  // آدرس عکس به API جدید ما اشاره می‌کند
+  const url = `/api/image/products/${filename}`;
 
   return NextResponse.json({ ok: true, url });
 }
