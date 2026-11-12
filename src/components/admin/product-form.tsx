@@ -588,20 +588,21 @@ export function ProductForm({
         </p>
       )}
 
-      <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white/95 p-3 shadow-xl backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/95">
-        <p className="flex items-center gap-2 text-[11px] font-bold text-zinc-400 dark:text-zinc-500">
+      {/* دکمه شناور ذخیره تغییرات (Sticky Footer) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-3 border-t border-zinc-200 bg-white/80 p-3 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
+        <p className="hidden sm:flex items-center gap-2 text-[11px] font-bold text-zinc-400 dark:text-zinc-500">
           <Package className="h-4 w-4 text-gold-500" />
-          {initial?.id
+          {initial
             ? "تغییرات محصول ذخیره می‌شود"
             : "محصول جدید به فروشگاه اضافه می‌شود"}
         </p>
         <button
           onClick={submit}
           disabled={saving}
-          className="btn-gold px-8 py-2.5 text-xs"
+          className="btn-gold w-full sm:w-auto px-8 py-2.5 text-xs"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {initial?.id ? "ذخیره تغییرات" : "انتشار محصول"}
+          {initial ? "ذخیره تغییرات" : "انتشار محصول"}
         </button>
       </div>
     </div>

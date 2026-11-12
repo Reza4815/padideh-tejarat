@@ -50,7 +50,9 @@ export async function POST(req: Request) {
     const stream = Readable.from(buffer);
     await client.uploadFrom(stream, filename);
   } catch (err) {
-    console.error("FTP Upload Error:", err);
+    // این خط رو اضافه کن تا خطای کامل رو ببینی
+    console.error("FTP Upload Error Details:", err);
+
     return NextResponse.json(
       { error: "آپلود به FTP ناموفق بود" },
       { status: 500 },
