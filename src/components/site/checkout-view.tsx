@@ -394,7 +394,7 @@ export function CheckoutView() {
   if (!draft || resolved.length === 0) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-20 text-center">
-        <span className="grid h-24 w-24 place-items-center rounded-[2rem] bg-gradient-to-br from-gold-100 to-gold-50 text-gold-500 dark:from-gold-950/60 dark:to-zinc-900">
+        <span className="grid h-24 w-24 place-items-center rounded-[2rem] bg-gradient-to-br from-gold-100 to-gold-50 text-gold-500 dark:from-gold-900/60 dark:to-zinc-900 dark:text-gold-400">
           <ShoppingBag className="h-11 w-11" strokeWidth={1.5} />
         </span>
         <h1 className="text-xl font-black text-ink-950 dark:text-zinc-100">اطلاعات سفارش یافت نشد</h1>
@@ -488,17 +488,17 @@ export function CheckoutView() {
                 <button
                   type="button"
                   onClick={applySavedAddress}
-                  className={`flex w-full items-start gap-3 rounded-xl border p-3 text-start transition hover:border-gold-400 hover:bg-gold-50 active:scale-[0.99] dark:hover:bg-gold-950/50 ${
+                  className={`flex w-full items-start gap-3 rounded-xl border p-3 text-start transition hover:border-gold-400 hover:bg-gold-50 active:scale-[0.99] dark:hover:bg-gold-900/50 ${
                     savedSelected
-                      ? "border-gold-400 bg-gold-50 dark:border-gold-600/60 dark:bg-gold-950/30"
-                      : "border-gold-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                      ? "border-gold-400 bg-white dark:border-gold-600/60 dark:bg-zinc-800"
+                      : "border-gold-200 bg-white dark:border-zinc-700 dark:bg-zinc-800"
                   }`}
                 >
                   <span
                     className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
                       savedSelected
                         ? "bg-gold-500 text-zinc-950"
-                        : "bg-gold-50 text-gold-600 dark:bg-gold-950/40"
+                        : "bg-gold-50 text-gold-600 dark:bg-gold-900/40"
                     }`}
                   >
                     {savedSelected ? (
@@ -509,7 +509,7 @@ export function CheckoutView() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-2">
-                      <span className="text-[12px] font-black text-ink-950 dark:text-zinc-100">
+                      <span className="text-[12px] font-black text-zinc-900 dark:text-zinc-100">
                         انتخاب آدرس ذخیره‌شده
                       </span>
                       {savedSelected && (
@@ -526,7 +526,7 @@ export function CheckoutView() {
                     </span>
                     {savedAddress.postalCode ? (
                       <span
-                        className="mt-0.5 block text-[10px] font-bold text-zinc-400 tnum"
+                        className="mt-0.5 block text-[10px] font-bold text-zinc-400 tnum dark:text-zinc-400"
                         dir="ltr"
                       >
                         کد پستی: {savedAddress.postalCode}
@@ -605,13 +605,13 @@ export function CheckoutView() {
               aria-disabled="true"
               disabled
               onClick={() => setMethod("online")}
-              className="flex cursor-not-allowed items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-start opacity-50 dark:border-zinc-800 dark:bg-zinc-900"
+              className="flex cursor-not-allowed items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-start text-zinc-700 opacity-50 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300"
             >
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold-50 text-gold-600 dark:bg-gold-950/40">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold-50 text-gold-600 dark:bg-gold-900/40">
                 <Wallet className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center gap-1.5 text-[13px] font-black text-ink-950 dark:text-zinc-100">
+                <span className="flex flex-wrap items-center gap-1.5 text-[13px] font-black text-zinc-700 dark:text-zinc-300">
                   پرداخت آنلاین (زرین‌پال)
                   <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-[9px] font-black text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                     به زودی
@@ -627,17 +627,25 @@ export function CheckoutView() {
               onClick={() => setMethod("card")}
               className={`flex items-center gap-3 rounded-2xl border p-4 text-start transition active:scale-[0.99] ${
                 method === "card"
-                  ? "border-gold-400 bg-gold-50/60 shadow-md dark:border-gold-700/60 dark:bg-gold-950/30"
-                  : "border-zinc-200 bg-white hover:border-gold-300 dark:border-zinc-800 dark:bg-zinc-900"
+                  ? "border-gold-400 bg-gold-50 text-gold-900 shadow-md dark:border-gold-700/60 dark:bg-gold-900/30 dark:text-gold-100"
+                  : "border-zinc-200 bg-zinc-100 text-zinc-700 hover:border-gold-300 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300"
               }`}
             >
-              <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${method === "card" ? "bg-gold-500 text-zinc-950" : "bg-gold-50 text-gold-600 dark:bg-gold-950/40"}`}>
+              <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${method === "card" ? "bg-gold-500 text-zinc-950" : "bg-gold-50 text-gold-600 dark:bg-gold-900/40"}`}>
                 <Landmark className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5 text-[13px] font-black text-ink-950 dark:text-zinc-100">
+                <span
+                  className={`flex items-center gap-1.5 text-[13px] font-black ${
+                    method === "card"
+                      ? "text-gold-900 dark:text-gold-100"
+                      : "text-zinc-700 dark:text-zinc-300"
+                  }`}
+                >
                   کارت به کارت
-                  {method === "card" && <BadgeCheck className="h-4 w-4 text-gold-600" />}
+                  {method === "card" && (
+                    <BadgeCheck className="h-4 w-4 text-gold-600 dark:text-gold-400" />
+                  )}
                 </span>
                 <span className="mt-0.5 block text-[11px] text-zinc-500 dark:text-zinc-400">واریز به کارت و آپلود رسید</span>
               </span>
@@ -667,7 +675,7 @@ export function CheckoutView() {
                     <button
                       type="button"
                       onClick={copyCard}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gold-300 bg-gold-50 px-3.5 py-1.5 text-[11px] font-extrabold text-gold-700 transition hover:bg-gold-100 active:scale-95 dark:border-gold-700/50 dark:bg-gold-950/40 dark:text-gold-300"
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gold-300 bg-gold-50 px-3.5 py-1.5 text-[11px] font-extrabold text-gold-700 transition hover:bg-gold-100 active:scale-95 dark:border-gold-700/50 dark:bg-gold-900/40 dark:text-gold-300"
                     >
                       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                       {copied ? "کپی شد!" : "کپی"}
@@ -708,11 +716,11 @@ export function CheckoutView() {
                     <button
                       type="button"
                       onClick={() => fileRef.current?.click()}
-                      className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-gold-300 bg-white/60 px-4 py-8 text-center transition hover:border-gold-500 hover:bg-gold-50/50 dark:border-gold-700/50 dark:bg-zinc-800/60"
+                      className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-gold-300 bg-white/60 px-4 py-8 text-center transition hover:border-gold-500 hover:bg-gold-50/50 dark:border-gold-700/50 dark:bg-zinc-800"
                     >
-                      <UploadCloud className="h-8 w-8 text-gold-500" />
+                      <UploadCloud className="h-8 w-8 text-gold-500 dark:text-gold-400" />
                       <span className="text-[12px] font-extrabold text-zinc-600 dark:text-zinc-300">انتخاب تصویر رسید</span>
-                      <span className="text-[10px] text-zinc-400">برای انتخاب ضربه بزنید</span>
+                      <span className="text-[10px] text-zinc-400 dark:text-zinc-400">برای انتخاب ضربه بزنید</span>
                     </button>
                   )}
                   {fileError && (
