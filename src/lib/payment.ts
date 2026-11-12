@@ -1,12 +1,16 @@
 // مقادیر مشترک فلو پرداخت و پیگیری سفارش
 // NOTE: شماره کارت را از اینجا تغییر دهید.
 
-export const CARD_NUMBER = "6037-9911-XXXX-XXXX";
-export const CARD_NUMBER_RAW = "60379911XXXXXXXX";
-export const CARD_HOLDER = "پدیده تجارت الوند";
+export const CARD_NUMBER = "6104-3373-2119-4506";
+export const CARD_NUMBER_RAW = "6104337321194506";
+export const CARD_HOLDER = "علیرضا ابراهیمی";
 
 export type PaymentMethod = "online" | "card";
-export type PaymentStatus = "pending" | "awaiting_review" | "approved" | "rejected";
+export type PaymentStatus =
+  | "pending"
+  | "awaiting_review"
+  | "approved"
+  | "rejected";
 export type OrderLifecycle =
   | "pending"
   | "awaiting_review"
@@ -38,15 +42,16 @@ export const ORDER_STATUS_LABEL: Record<OrderLifecycle, string> = {
   cancelled: "لغو شده",
 };
 
-export const ORDER_STATUS_OPTIONS: { value: OrderLifecycle; label: string }[] = [
-  { value: "pending", label: "سفارش ثبت شد" },
-  { value: "awaiting_review", label: "در انتظار تأیید رسید" },
-  { value: "approved", label: "پرداخت تأیید شد" },
-  { value: "preparing", label: "در حال آماده‌سازی" },
-  { value: "shipped", label: "ارسال شد" },
-  { value: "delivered", label: "تحویل داده شد" },
-  { value: "cancelled", label: "لغو شده" },
-];
+export const ORDER_STATUS_OPTIONS: { value: OrderLifecycle; label: string }[] =
+  [
+    { value: "pending", label: "سفارش ثبت شد" },
+    { value: "awaiting_review", label: "در انتظار تأیید رسید" },
+    { value: "approved", label: "پرداخت تأیید شد" },
+    { value: "preparing", label: "در حال آماده‌سازی" },
+    { value: "shipped", label: "ارسال شد" },
+    { value: "delivered", label: "تحویل داده شد" },
+    { value: "cancelled", label: "لغو شده" },
+  ];
 
 /** تولید کد پیگیری یکتا با فرمت ORD-YYYYMMDD-XXX */
 export function generateTrackingCode() {

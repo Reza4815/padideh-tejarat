@@ -40,8 +40,9 @@ export async function POST(req: Request) {
   }
 
   const filename = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
-  // ✅ مسیر جدید: storage/uploads/products (بیرون از public)
-  const uploadDir = path.join(process.cwd(), "storage", "uploads", "products");
+
+  // ✅ برگشت به مسیر public (همون جایی که فایل‌های قبلی بودند)
+  const uploadDir = path.join(process.cwd(), "public", "uploads", "products");
   const filePath = path.join(uploadDir, filename);
 
   await mkdir(uploadDir, { recursive: true });
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
   const buffer = Buffer.from(arrayBuffer);
   await writeFile(filePath, buffer);
 
-  // ✅ URL از /uploads/... استفاده می‌کنه که route جدید سروش می‌کنه
+  // ✅ URL همان مسیر قبلی که Next.js خودش سرو می‌کند
   const url = `/uploads/products/${filename}`;
 
   return NextResponse.json({ ok: true, url });
