@@ -63,12 +63,36 @@ async function readJsonSafe<T>(res: Response): Promise<T | null> {
   }
 }
 
+/** ذخیره پیش‌نویس تسویه در sessionStorage */
+function persistDraft(draft: CheckoutDraft) {
+  try {
+    sessionStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(draft));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** اعتبارسنجی آدرس پیش از ثبت سفارش (آدرس ذخیره‌شده یا دستی) */
+function validateDraft(draft: CheckoutDraft): string {
+  if (!draft.customerName.trim()) return "نام و نام خانوادگی الزامی است";
+  if (!draft.phone.trim()) return "شماره موبایل الزامی است";
+  if (!draft.province.trim()) return "استان الزامی است";
+  if (!draft.city.trim()) return "شهر الزامی است";
+  if (draft.address.trim().length < 5) {
+    return "آدرس پستی را کامل کنید یا آدرس ذخیره‌شده را انتخاب کنید";
+  }
+  if (!/^\d{10}$/.test(draft.postalCode.replace(/\D/g, ""))) {
+    return "کد پستی باید ۱۰ رقم باشد";
+  }
+  return "";
+}
+
 export function CheckoutView() {
   const router = useRouter();
   const { items, ready, clear, refreshPrices } = useCart();
   const [draft, setDraft] = useState<CheckoutDraft | null>(null);
   const [resolved, setResolved] = useState<ResolvedItem[] | null>(null);
-  const [method, setMethod] = useState<PaymentMethod>("online");
+  const [method, setMethod] = useState<PaymentMethod>("card");
   const [copied, setCopied] = useState(false);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -100,15 +124,29 @@ export function CheckoutView() {
         );
         if (!mounted) return;
         const u = data?.user;
-        if (u?.address) {
-          setSavedAddress({
-            address: u.address,
-            province: u.province,
-            city: u.city,
-            postalCode: u.postalCode,
-            plateNumber: u.plateNumber,
-          });
-        }
+        if (!u?.address) return;
+        const saved: SavedAddress = {
+          address: u.address,
+          province: u.province,
+          city: u.city,
+          postalCode: u.postalCode,
+          plateNumber: u.plateNumber,
+        };
+        setSavedAddress(saved);
+        // آدرس ذخیره‌شده به‌صورت پیش‌فرض انتخاب می‌شود (اگر کاربر آدرسی وارد نکرده باشد)
+        setDraft((prev) => {
+          if (!prev || prev.address.trim()) return prev;
+          const next = {
+            ...prev,
+            province: saved.province ?? "",
+            city: saved.city ?? "",
+            address: saved.address ?? "",
+            postalCode: saved.postalCode ?? "",
+            plateNumber: saved.plateNumber ?? "",
+          };
+          persistDraft(next);
+          return next;
+        });
       } catch {
         /* ignore */
       }
@@ -216,11 +254,7 @@ export function CheckoutView() {
     setDraft((prev) => {
       if (!prev) return prev;
       const next = { ...prev, ...patch };
-      try {
-        sessionStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        /* ignore */
-      }
+      persistDraft(next);
       return next;
     });
   }
@@ -260,6 +294,9 @@ export function CheckoutView() {
   async function createOrder(paymentMethod: PaymentMethod) {
     const d = draft;
     if (!d) throw new Error("اطلاعات گیرنده یافت نشد");
+    // اعتبارسنجی آدرس (ذخیره‌شده یا دستی) پیش از ارسال به سرور
+    const invalid = validateDraft(d);
+    if (invalid) throw new Error(invalid);
     try {
       await Promise.race([
         refreshPrices(),
@@ -313,6 +350,12 @@ export function CheckoutView() {
     setSubmitting(true);
     setError("");
     try {
+      // اعتبارسنجی آدرس (ذخیره‌شده یا دستی) پیش از آپلود رسید
+      const d = draft;
+      if (!d) throw new Error("اطلاعات گیرنده یافت نشد");
+      const invalid = validateDraft(d);
+      if (invalid) throw new Error(invalid);
+
       const receiptUrl = await uploadReceipt();
       const order = await createOrder("card");
       let res: Response;
@@ -366,8 +409,12 @@ export function CheckoutView() {
     );
   }
 
+  const hasSaved = Boolean(savedAddress?.address);
   const hasAddress = Boolean(draft.address.trim());
-  const showAddressForm = addressOpen || !hasAddress;
+  // اگر آدرس ذخیره‌شده وجود دارد، فرم دستی پشت دکمه «ویرایش آدرس» پنهان می‌ماند
+  const showAddressForm = addressOpen || (!hasSaved && !hasAddress);
+  const savedSelected =
+    hasSaved && draft.address.trim() === (savedAddress?.address ?? "").trim();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -417,7 +464,7 @@ export function CheckoutView() {
             <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
               <MapPin className="h-4 w-4 text-gold-600" />
               <h2 className="text-sm font-black text-ink-950 dark:text-zinc-100">آدرس تحویل</h2>
-              {hasAddress && (
+              {(hasSaved || hasAddress) && (
                 <button
                   type="button"
                   onClick={() => setAddressOpen((v) => !v)}
@@ -435,14 +482,35 @@ export function CheckoutView() {
                 <button
                   type="button"
                   onClick={applySavedAddress}
-                  className="flex w-full items-start gap-3 rounded-xl border border-gold-300 bg-gold-50/60 p-3 text-start transition hover:border-gold-400 hover:bg-gold-50 active:scale-[0.99] dark:border-gold-700/50 dark:bg-gold-950/30 dark:hover:bg-gold-950/50"
+                  className={`flex w-full items-start gap-3 rounded-xl border p-3 text-start transition hover:border-gold-400 hover:bg-gold-50 active:scale-[0.99] dark:hover:bg-gold-950/50 ${
+                    savedSelected
+                      ? "border-gold-400 bg-gold-50 dark:border-gold-600/60 dark:bg-gold-950/30"
+                      : "border-gold-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                  }`}
                 >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gold-500 text-zinc-950">
-                    <Check className="h-4 w-4" />
+                  <span
+                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
+                      savedSelected
+                        ? "bg-gold-500 text-zinc-950"
+                        : "bg-gold-50 text-gold-600 dark:bg-gold-950/40"
+                    }`}
+                  >
+                    {savedSelected ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <MapPin className="h-4 w-4" />
+                    )}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[12px] font-black text-ink-950 dark:text-zinc-100">
-                      انتخاب آدرس ذخیره‌شده
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-[12px] font-black text-ink-950 dark:text-zinc-100">
+                        انتخاب آدرس ذخیره‌شده
+                      </span>
+                      {savedSelected && (
+                        <span className="rounded-full bg-gold-500 px-2 py-0.5 text-[9px] font-black text-zinc-950">
+                          انتخاب‌شده
+                        </span>
+                      )}
                     </span>
                     <span className="mt-0.5 block text-[11px] leading-5 text-zinc-600 dark:text-zinc-400">
                       {[savedAddress.province, savedAddress.city]
@@ -528,20 +596,20 @@ export function CheckoutView() {
               type="button"
               role="radio"
               aria-checked={method === "online"}
+              aria-disabled="true"
+              disabled
               onClick={() => setMethod("online")}
-              className={`flex items-center gap-3 rounded-2xl border p-4 text-start transition active:scale-[0.99] ${
-                method === "online"
-                  ? "border-gold-400 bg-gold-50/60 shadow-md dark:border-gold-700/60 dark:bg-gold-950/30"
-                  : "border-zinc-200 bg-white hover:border-gold-300 dark:border-zinc-800 dark:bg-zinc-900"
-              }`}
+              className="flex cursor-not-allowed items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-start opacity-50 dark:border-zinc-800 dark:bg-zinc-900"
             >
-              <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${method === "online" ? "bg-gold-500 text-zinc-950" : "bg-gold-50 text-gold-600 dark:bg-gold-950/40"}`}>
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold-50 text-gold-600 dark:bg-gold-950/40">
                 <Wallet className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5 text-[13px] font-black text-ink-950 dark:text-zinc-100">
+                <span className="flex flex-wrap items-center gap-1.5 text-[13px] font-black text-ink-950 dark:text-zinc-100">
                   پرداخت آنلاین (زرین‌پال)
-                  {method === "online" && <BadgeCheck className="h-4 w-4 text-gold-600" />}
+                  <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-[9px] font-black text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                    به زودی
+                  </span>
                 </span>
                 <span className="mt-0.5 block text-[11px] text-zinc-500 dark:text-zinc-400">پرداخت امن با کارت بانکی</span>
               </span>

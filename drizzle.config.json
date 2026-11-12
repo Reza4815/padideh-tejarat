@@ -3,6 +3,6 @@
   "schema": "./src/db/schema.ts",
   "out": "./drizzle",
   "dbCredentials": {
-    "url": "postgresql://neondb_owner:npg_8XcgJBolr7TU@ep-snowy-haze-aeu8j1xn.c-2.us-east-2.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require"
+    "url": "postgresql://postgres:eJMqxidimqLkhPpb@services.irn8.chabokan.net:51572/nola?sslmode=require"
   }
 }

@@ -39,6 +39,30 @@ type RawSuggestedProduct = Omit<SuggestedProduct, "price"> & {
   priceOnRequest: boolean;
 };
 
+type SavedAddress = {
+  address?: string | null;
+  province?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  plateNumber?: string | null;
+};
+
+type MeUser = SavedAddress & {
+  name?: string | null;
+  phone?: string | null;
+};
+
+/** خواندن امن JSON از پاسخ سرور (پاسخ خالی/غیر JSON باعث کرش نمی‌شود) */
+async function readJsonSafe<T>(res: Response): Promise<T | null> {
+  try {
+    const raw = await res.text();
+    if (!raw.trim()) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 export function CartView() {
   const router = useRouter();
   const {
@@ -58,6 +82,9 @@ export function CartView() {
   const [suggested, setSuggested] = useState<SuggestedProduct[]>([]);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  // آدرس ذخیره‌شده کاربر (اگر داشته باشد، فیلدهای آدرس در سبد اختیاری می‌شوند)
+  const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
+  const [profile, setProfile] = useState<MeUser | null>(null);
 
   // گرفتن محصولات پیشنهادی
 
@@ -94,6 +121,36 @@ export function CartView() {
       mounted = false;
     };
   }, [ready, items]);
+
+  // دریافت پروفایل کاربر و آدرس ذخیره‌شده (برای اختیاری‌کردن فیلدهای آدرس)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await readJsonSafe<{ ok?: boolean; user?: MeUser }>(res);
+        if (!mounted) return;
+        const u = data?.user;
+        if (!u) return;
+        setProfile(u);
+        if (u.address) {
+          setSavedAddress({
+            address: u.address,
+            province: u.province,
+            city: u.city,
+            postalCode: u.postalCode,
+            plateNumber: u.plateNumber,
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // افزودن محصول پیشنهادی به سبد با انیمیشن
   function addSuggested(p: SuggestedProduct) {
@@ -140,23 +197,71 @@ export function CartView() {
     const form = e.currentTarget;
     const fd = new FormData(form);
 
+    // ── وضعیت ورود + آدرس ذخیره‌شده ──
+    let authed = false;
+    let saved: SavedAddress | null = savedAddress;
+    try {
+      const me = await fetch("/api/auth/me", { cache: "no-store" });
+      if (me.ok) {
+        authed = true;
+        const data = await readJsonSafe<{ ok?: boolean; user?: MeUser }>(me);
+        const u = data?.user;
+        if (u?.address) {
+          saved = {
+            address: u.address,
+            province: u.province,
+            city: u.city,
+            postalCode: u.postalCode,
+            plateNumber: u.plateNumber,
+          };
+          setSavedAddress(saved);
+        }
+      }
+    } catch {
+      authed = false;
+    }
+
+    const val = (key: string) => String(fd.get(key) ?? "").trim();
+    // مقدار واردشده کاربر اولویت دارد؛ در غیر این صورت آدرس ذخیره‌شده استفاده می‌شود
+    const pick = (entered: string, fallback?: string | null) =>
+      entered || String(fallback ?? "").trim();
+
     const draft = {
-      customerName: String(fd.get("name") ?? ""),
-      phone: String(fd.get("phone") ?? ""),
-      province: String(fd.get("province") ?? ""),
-      city: String(fd.get("city") ?? ""),
-      address: String(fd.get("address") ?? ""),
-      postalCode: String(fd.get("postalCode") ?? ""),
-      plateNumber: String(fd.get("plateNumber") ?? ""),
-      note: String(fd.get("note") ?? ""),
+      customerName: val("name"),
+      phone: val("phone"),
+      province: pick(val("province"), saved?.province),
+      city: pick(val("city"), saved?.city),
+      address: pick(val("address"), saved?.address),
+      postalCode: pick(val("postalCode"), saved?.postalCode),
+      plateNumber: pick(val("plateNumber"), saved?.plateNumber),
+      note: val("note"),
       items: items.map((i) => ({ id: i.id, qty: i.qty })),
     };
 
     // اعتبارسنجی سبک سمت کاربر؛ اعتبارسنجی اصلی در /api/orders انجام می‌شود
-    if (!draft.customerName.trim() || !draft.phone.trim() || draft.items.length === 0) {
+    if (!draft.customerName || !draft.phone || draft.items.length === 0) {
       setError("اطلاعات گیرنده و سبد خرید را تکمیل کنید");
       setStatus("err");
       return;
+    }
+
+    // اگر کاربر آدرس ذخیره‌شده ندارد، فیلدهای آدرس در همین صفحه اجباری است
+    if (!saved?.address) {
+      if (!draft.province || !draft.city) {
+        setError("استان و شهر را وارد کنید");
+        setStatus("err");
+        return;
+      }
+      if (draft.address.length < 5) {
+        setError("آدرس پستی را وارد کنید");
+        setStatus("err");
+        return;
+      }
+      if (!/^\d{10}$/.test(draft.postalCode.replace(/\D/g, ""))) {
+        setError("کد پستی باید ۱۰ رقم باشد");
+        setStatus("err");
+        return;
+      }
     }
 
     try {
@@ -168,13 +273,6 @@ export function CartView() {
     }
     // ادامه خرید فقط برای کاربران واردشده؛ مهمان به صفحه ورود هدایت می‌شود
     // (پیش‌نویس سبد در sessionStorage می‌ماند تا بعد از ورود ادامه دهد)
-    let authed = false;
-    try {
-      const me = await fetch("/api/auth/me", { cache: "no-store" });
-      authed = me.ok;
-    } catch {
-      authed = false;
-    }
     if (!authed) {
       setStatus("idle");
       router.push(`/auth/login?redirect=${encodeURIComponent("/checkout")}`);
@@ -637,12 +735,14 @@ export function CartView() {
                 <input
                   name="name"
                   required
+                  defaultValue={profile?.name ?? ""}
                   placeholder="نام و نام خانوادگی *"
                   className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                 />
                 <input
                   name="phone"
                   required
+                  defaultValue={profile?.phone ?? ""}
                   placeholder="شماره موبایل *"
                   className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                   dir="ltr"
@@ -650,14 +750,16 @@ export function CartView() {
                 />
                 <input
                   name="province"
-                  required
-                  placeholder="استان *"
+                  required={!savedAddress}
+                  defaultValue={savedAddress?.province ?? ""}
+                  placeholder={savedAddress ? "استان" : "استان *"}
                   className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                 />
                 <input
                   name="city"
-                  required
-                  placeholder="شهر *"
+                  required={!savedAddress}
+                  defaultValue={savedAddress?.city ?? ""}
+                  placeholder={savedAddress ? "شهر" : "شهر *"}
                   className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                 />
               </div>
@@ -669,19 +771,27 @@ export function CartView() {
                 </span>
               </div>
 
+              {savedAddress && (
+                <p className="text-[10px] leading-5 font-bold text-gold-600 dark:text-gold-400">
+                  آدرس ذخیره‌شده شما به‌صورت خودکار استفاده می‌شود؛ در صورت نیاز می‌توانید آن را ویرایش کنید.
+                </p>
+              )}
+
               <textarea
                 name="address"
-                required
+                required={!savedAddress}
+                defaultValue={savedAddress?.address ?? ""}
                 rows={2}
-                placeholder="خیابان، کوچه، پلاک، واحد *"
+                placeholder={savedAddress ? "خیابان، کوچه، پلاک، واحد" : "خیابان، کوچه، پلاک، واحد *"}
                 className="field resize-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               />
 
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 <input
                   name="postalCode"
-                  required
-                  placeholder="کد پستی (۱۰ رقم) *"
+                  required={!savedAddress}
+                  defaultValue={savedAddress?.postalCode ?? ""}
+                  placeholder={savedAddress ? "کد پستی (۱۰ رقم)" : "کد پستی (۱۰ رقم) *"}
                   inputMode="numeric"
                   maxLength={10}
                   pattern="\d{10}"
@@ -692,6 +802,7 @@ export function CartView() {
                 />
                 <input
                   name="plateNumber"
+                  defaultValue={savedAddress?.plateNumber ?? ""}
                   placeholder="پلاک (اختیاری)"
                   className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                 />
@@ -724,7 +835,7 @@ export function CartView() {
               </button>
 
               <p className="text-center text-[10px] leading-5 text-zinc-400 dark:text-zinc-500">
-                در مرحله بعد، روش پرداخت (آنلاین یا کارت‌به‌کارت) را انتخاب می‌کنید.
+                در مرحله بعد، آدرس تحویل را تأیید می‌کنید و تصویر رسید کارت‌به‌کارت را بارگذاری می‌کنید.
               </p>
             </div>
           </form>
