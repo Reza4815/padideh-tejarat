@@ -1,13 +1,22 @@
-import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
+import { Client } from "basic-ftp";
+import { Readable } from "stream";
 
 // NOTE: منطق آپلود دقیقاً مشابه src/app/api/admin/upload/route.ts است
-// (همان put به Vercel Blob) با این تفاوت‌ها:
+// (همان آپلود روی FTP چابکان) با این تفاوت‌ها:
 // - بدون نیاز به لاگین ادمین (عمومی، برای رسید کارت‌به‌کارت مشتری)
 // - حداکثر ۲ مگابایت و فقط jpg/png/webp
-// - ذخیره در پوشه receipts/
+// - ذخیره در پوشه receipts/ و بازگرداندن آدرس /api/image/receipts/<file>
 // آپلود از سمت کلاینت با FormData انجام می‌شود تا درگیر سقف ۴.۵ مگابایتی
 // بدنه‌ی Server Action نشود.
+//
+// چرا دیگر Vercel Blob استفاده نمی‌شود؟
+// توکن Blob روی هاست چابکان معتبر/در دسترس نیست و put() با خطای توکن
+// می‌افتاد؛ این خطا باعث می‌شد پاسخ سرور JSON معتبر نباشد و کلاینت
+// با خطای «Unexpected end of JSON input» کرش کند.
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const ALLOWED: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -16,32 +25,69 @@ const ALLOWED: Record<string, string> = {
 };
 const MAX_SIZE = 2 * 1024 * 1024;
 
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
 export async function POST(req: Request) {
-  const form = await req.formData();
-  const file = form.get("file");
-  if (!(file instanceof File)) {
-    return NextResponse.json({ ok: false, error: "فایلی ارسال نشده است" }, { status: 400 });
-  }
-  if (file.size > MAX_SIZE) {
-    return NextResponse.json(
-      { ok: false, error: "حجم رسید باید حداکثر ۲ مگابایت باشد" },
-      { status: 400 },
-    );
-  }
-  const ext = ALLOWED[file.type];
-  if (!ext) {
-    return NextResponse.json(
-      { ok: false, error: "فقط فایل jpg/png/webp مجاز است" },
-      { status: 400 },
-    );
-  }
+  try {
+    // ── خواندن امن فرم ──
+    let form: FormData;
+    try {
+      form = await req.formData();
+    } catch {
+      return json({ ok: false, error: "فایلی ارسال نشده است" }, 400);
+    }
 
-  const name = `receipts/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+    const file = form.get("file");
+    if (!(file instanceof File)) {
+      return json({ ok: false, error: "فایلی ارسال نشده است" }, 400);
+    }
+    if (file.size > MAX_SIZE) {
+      return json(
+        { ok: false, error: "حجم رسید باید حداکثر ۲ مگابایت باشد" },
+        400,
+      );
+    }
+    const ext = ALLOWED[file.type];
+    if (!ext) {
+      return json({ ok: false, error: "فقط فایل jpg/png/webp مجاز است" }, 400);
+    }
 
-  const blob = await put(name, file, {
-    access: "public",
-    contentType: file.type,
-  });
+    const filename = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
 
-  return NextResponse.json({ ok: true, url: blob.url });
+    // ── آپلود روی FTP چابکان (مثل آپلود تصاویر محصولات) ──
+    const client = new Client();
+    try {
+      await client.access({
+        host: process.env.FTP_HOST || "services.irn1.chabokan.net",
+        user: process.env.FTP_USER || "padide-main",
+        password: process.env.FTP_PASS,
+        secure: false,
+      });
+
+      // ساخت پوشه receipts در FTP (اگر نباشد)
+      await client.ensureDir("receipts");
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await client.uploadFrom(Readable.from(buffer), filename);
+    } catch (err) {
+      console.error("FTP Upload Error Details:", err);
+      return json({ ok: false, error: "آپلود رسید ناموفق بود" }, 500);
+    } finally {
+      try {
+        client.close();
+      } catch {
+        /* ignore */
+      }
+    }
+
+    // آدرس رسید از همان مسیر سرو شدهٔ تصاویر
+    const url = `/api/image/receipts/${filename}`;
+
+    return json({ ok: true, url });
+  } catch (e) {
+    console.error("[receipts/upload]", e);
+    return json({ ok: false, error: "آپلود رسید ناموفق بود" }, 500);
+  }
 }

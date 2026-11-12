@@ -11,7 +11,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const body = (await req.json()) as { receiptUrl?: string };
     const receiptUrl = (body.receiptUrl ?? "").trim();
 
-    if (!receiptUrl || (!receiptUrl.startsWith("http://") && !receiptUrl.startsWith("https://"))) {
+    // آدرس می‌تواند مطلق (Vercel Blob) یا نسبی و داخلی (FTP: /api/image/...) باشد
+    const isAbsolute =
+      receiptUrl.startsWith("http://") || receiptUrl.startsWith("https://");
+    const isInternal = receiptUrl.startsWith("/api/image/");
+    if (!receiptUrl || (!isAbsolute && !isInternal)) {
       return NextResponse.json({ ok: false, error: "آدرس رسید معتبر نیست" }, { status: 400 });
     }
     if (receiptUrl.length > 2000) {

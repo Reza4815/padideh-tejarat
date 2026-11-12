@@ -34,6 +34,12 @@ export function publicUser(u: UserRow) {
     name: u.name,
     email: u.email,
     createdAt: u.createdAt,
+    // آدرس ذخیره‌شده (برای پیش‌پر کردن فرم تسویه حساب)
+    address: u.address,
+    province: u.province,
+    city: u.city,
+    postalCode: u.postalCode,
+    plateNumber: u.plateNumber,
   };
 }
 

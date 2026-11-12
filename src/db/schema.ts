@@ -143,6 +143,12 @@ export const users = pgTable("users", {
   name: text("name"),
   email: text("email"),
   adminNote: text("admin_note"),
+  // ✅ آدرس ذخیره‌شده کاربر (nullable) — برای پیش‌پر کردن فرم تسویه حساب
+  address: text("address"),
+  province: text("province"),
+  city: text("city"),
+  postalCode: text("postal_code"),
+  plateNumber: text("plate_number"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

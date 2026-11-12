@@ -11,6 +11,8 @@ import {
   CreditCard,
   Landmark,
   Loader2,
+  MapPin,
+  Pencil,
   ReceiptText,
   ShieldCheck,
   ShoppingBag,
@@ -35,8 +37,31 @@ type ResolvedItem = {
   qty: number;
 };
 
+type SavedAddress = {
+  address?: string | null;
+  province?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  plateNumber?: string | null;
+};
+
 const RECEIPT_ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 const RECEIPT_MAX = 2 * 1024 * 1024;
+
+/**
+ * خواندن امن JSON از پاسخ سرور.
+ * اگر سرور پاسخ خالی/غیر JSON بدهد، به‌جای کرش کردن با
+ * «Unexpected end of JSON input» مقدار null برمی‌گرداند.
+ */
+async function readJsonSafe<T>(res: Response): Promise<T | null> {
+  try {
+    const raw = await res.text();
+    if (!raw.trim()) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
 
 export function CheckoutView() {
   const router = useRouter();
@@ -50,6 +75,8 @@ export function CheckoutView() {
   const [fileError, setFileError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
+  const [addressOpen, setAddressOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // خواندن پیش‌نویس ثبت‌شده از صفحه سبد
@@ -60,6 +87,35 @@ export function CheckoutView() {
     } catch {
       /* ignore */
     }
+  }, []);
+
+  // دریافت آدرس ذخیره‌شده کاربر برای پیش‌پر کردن فرم تسویه حساب
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        const data = await readJsonSafe<{ ok?: boolean; user?: SavedAddress }>(
+          res,
+        );
+        if (!mounted) return;
+        const u = data?.user;
+        if (u?.address) {
+          setSavedAddress({
+            address: u.address,
+            province: u.province,
+            city: u.city,
+            postalCode: u.postalCode,
+            plateNumber: u.plateNumber,
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // اقلام نمایشی: اول از سبد زنده، وگرنه از روی پیش‌نویس از سرور قیمت بگیر
@@ -90,7 +146,7 @@ export function CheckoutView() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ids: d.items.map((i) => i.id) }),
         });
-        const data = (await res.json()) as {
+        const data = await readJsonSafe<{
           prices?: {
             id: string;
             name: string;
@@ -98,9 +154,9 @@ export function CheckoutView() {
             priceOnRequest: boolean;
             partNumber: string;
           }[];
-        };
+        }>(res);
         if (!mounted) return;
-        const byId = new Map((data.prices ?? []).map((p) => [p.id, p]));
+        const byId = new Map((data?.prices ?? []).map((p) => [p.id, p]));
         setResolved(
           d.items.flatMap((i) => {
             const p = byId.get(i.id);
@@ -155,19 +211,55 @@ export function CheckoutView() {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  // ── کمک‌کننده‌های آدرس ──
+  function updateAddress(patch: Partial<CheckoutDraft>) {
+    setDraft((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      try {
+        sessionStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
+
+  function applySavedAddress() {
+    if (!savedAddress) return;
+    updateAddress({
+      province: savedAddress.province ?? "",
+      city: savedAddress.city ?? "",
+      address: savedAddress.address ?? "",
+      postalCode: savedAddress.postalCode ?? "",
+      plateNumber: savedAddress.plateNumber ?? "",
+    });
+    setAddressOpen(false);
+  }
+
   async function uploadReceipt(): Promise<string> {
-    if (!receiptFile) throw new Error("receipt-missing");
+    if (!receiptFile) throw new Error("ابتدا تصویر رسید را انتخاب کنید");
     const form = new FormData();
     form.append("file", receiptFile);
-    const res = await fetch("/api/receipts/upload", { method: "POST", body: form });
-    const data = (await res.json()) as { ok?: boolean; url?: string; error?: string };
-    if (!res.ok || !data.ok || !data.url) throw new Error(data.error ?? "آپلود رسید ناموفق بود");
+    let res: Response;
+    try {
+      res = await fetch("/api/receipts/upload", { method: "POST", body: form });
+    } catch {
+      throw new Error("ارتباط با سرور برقرار نشد؛ دوباره تلاش کنید");
+    }
+    const data = await readJsonSafe<{ ok?: boolean; url?: string; error?: string }>(res);
+    if (!data) {
+      throw new Error("پاسخ سرور برای آپلود رسید معتبر نبود؛ دوباره تلاش کنید");
+    }
+    if (!res.ok || !data.ok || !data.url) {
+      throw new Error(data.error ?? "آپلود رسید ناموفق بود");
+    }
     return data.url;
   }
 
   async function createOrder(paymentMethod: PaymentMethod) {
     const d = draft;
-    if (!d) throw new Error("draft-missing");
+    if (!d) throw new Error("اطلاعات گیرنده یافت نشد");
     try {
       await Promise.race([
         refreshPrices(),
@@ -176,12 +268,20 @@ export function CheckoutView() {
     } catch {
       /* ignore */
     }
-    const res = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...d, items: (resolved ?? d.items).map((i) => ({ id: i.id, qty: i.qty })), paymentMethod }),
-    });
-    const data = (await res.json()) as { ok?: boolean; id?: string; trackingCode?: string; error?: string };
+    let res: Response;
+    try {
+      res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...d, items: (resolved ?? d.items).map((i) => ({ id: i.id, qty: i.qty })), paymentMethod }),
+      });
+    } catch {
+      throw new Error("ارتباط با سرور برقرار نشد؛ دوباره تلاش کنید");
+    }
+    const data = await readJsonSafe<{ ok?: boolean; id?: string; trackingCode?: string; error?: string }>(res);
+    if (!data) {
+      throw new Error("پاسخ سرور برای ثبت سفارش معتبر نبود؛ دوباره تلاش کنید");
+    }
     if (!res.ok || !data.ok || !data.id || !data.trackingCode) {
       throw new Error(data.error ?? "ثبت سفارش ناموفق بود");
     }
@@ -215,12 +315,20 @@ export function CheckoutView() {
     try {
       const receiptUrl = await uploadReceipt();
       const order = await createOrder("card");
-      const res = await fetch(`/api/orders/${order.id}/receipt`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiptUrl }),
-      });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
+      let res: Response;
+      try {
+        res = await fetch(`/api/orders/${order.id}/receipt`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ receiptUrl }),
+        });
+      } catch {
+        throw new Error("ارتباط با سرور برقرار نشد؛ دوباره تلاش کنید");
+      }
+      const data = await readJsonSafe<{ ok?: boolean; error?: string }>(res);
+      if (!data) {
+        throw new Error("پاسخ سرور برای ثبت رسید معتبر نبود؛ دوباره تلاش کنید");
+      }
       if (!res.ok || !data.ok) throw new Error(data.error ?? "ثبت رسید ناموفق بود");
       clear();
       sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
@@ -257,6 +365,9 @@ export function CheckoutView() {
       </div>
     );
   }
+
+  const hasAddress = Boolean(draft.address.trim());
+  const showAddressForm = addressOpen || !hasAddress;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -299,6 +410,116 @@ export function CheckoutView() {
             <p className="px-4 pb-3 text-[11px] text-zinc-500 dark:text-zinc-400">
               گیرنده: {draft.customerName} — <span dir="ltr">{draft.phone}</span>
             </p>
+          </div>
+
+          {/* آدرس تحویل */}
+          <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+              <MapPin className="h-4 w-4 text-gold-600" />
+              <h2 className="text-sm font-black text-ink-950 dark:text-zinc-100">آدرس تحویل</h2>
+              {hasAddress && (
+                <button
+                  type="button"
+                  onClick={() => setAddressOpen((v) => !v)}
+                  className="ms-auto inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1.5 text-[11px] font-extrabold text-zinc-600 transition hover:border-gold-300 hover:text-gold-700 active:scale-95 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-gold-700/50 dark:hover:text-gold-300"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  {showAddressForm ? "بستن فرم" : "ویرایش آدرس"}
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-3 p-4">
+              {/* کارت آدرس ذخیره‌شده کاربر */}
+              {savedAddress && (
+                <button
+                  type="button"
+                  onClick={applySavedAddress}
+                  className="flex w-full items-start gap-3 rounded-xl border border-gold-300 bg-gold-50/60 p-3 text-start transition hover:border-gold-400 hover:bg-gold-50 active:scale-[0.99] dark:border-gold-700/50 dark:bg-gold-950/30 dark:hover:bg-gold-950/50"
+                >
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gold-500 text-zinc-950">
+                    <Check className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[12px] font-black text-ink-950 dark:text-zinc-100">
+                      انتخاب آدرس ذخیره‌شده
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-5 text-zinc-600 dark:text-zinc-400">
+                      {[savedAddress.province, savedAddress.city]
+                        .filter(Boolean)
+                        .join("، ")}
+                      {savedAddress.address ? ` — ${savedAddress.address}` : ""}
+                    </span>
+                    {savedAddress.postalCode ? (
+                      <span
+                        className="mt-0.5 block text-[10px] font-bold text-zinc-400 tnum"
+                        dir="ltr"
+                      >
+                        کد پستی: {savedAddress.postalCode}
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+              )}
+
+              {/* فرم دستی — پشت دکمه «ویرایش آدرس» پنهان می‌شود */}
+              {showAddressForm ? (
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    <input
+                      value={draft.province}
+                      onChange={(e) => updateAddress({ province: e.target.value })}
+                      placeholder="استان *"
+                      className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                    />
+                    <input
+                      value={draft.city}
+                      onChange={(e) => updateAddress({ city: e.target.value })}
+                      placeholder="شهر *"
+                      className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                    />
+                  </div>
+
+                  <textarea
+                    value={draft.address}
+                    onChange={(e) => updateAddress({ address: e.target.value })}
+                    rows={2}
+                    placeholder="خیابان، کوچه، پلاک، واحد *"
+                    className="field resize-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                  />
+
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    <input
+                      value={draft.postalCode}
+                      onChange={(e) => updateAddress({ postalCode: e.target.value })}
+                      placeholder="کد پستی (۱۰ رقم) *"
+                      inputMode="numeric"
+                      maxLength={10}
+                      className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                      dir="ltr"
+                      style={{ textAlign: "right" }}
+                    />
+                    <input
+                      value={draft.plateNumber}
+                      onChange={(e) => updateAddress({ plateNumber: e.target.value })}
+                      placeholder="پلاک (اختیاری)"
+                      className="field dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl bg-zinc-50 p-3 text-[11px] leading-6 text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-300">
+                  <p className="font-black text-ink-950 dark:text-zinc-100">
+                    {[draft.province, draft.city].filter(Boolean).join("، ") || "—"}
+                  </p>
+                  <p>{draft.address || "—"}</p>
+                  <p className="mt-1 text-[10px] font-bold text-zinc-400 tnum" dir="ltr">
+                    کد پستی: {draft.postalCode || "—"}
+                    {draft.plateNumber ? ` — پلاک: ${draft.plateNumber}` : ""}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* انتخاب روش */}

@@ -1,31 +1,55 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { orders, products } from "@/db/schema";
+import { orders, products, users } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { ensureSeed } from "@/lib/data";
 import { generateTrackingCode } from "@/lib/payment";
 import { getCurrentUser } from "@/lib/user-auth";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type IncomingItem = {
   id?: string;
   qty?: number;
 };
 
+type OrderBody = {
+  customerName?: string;
+  phone?: string;
+  province?: string;
+  city?: string;
+  address?: string;
+  postalCode?: string;
+  plateNumber?: string;
+  note?: string;
+  items?: IncomingItem[];
+  paymentMethod?: string;
+};
+
+/**
+ * تمام پاسخ‌های این مسیر باید JSON معتبر باشند؛ حتی در خطا.
+ * این تابع تضمین می‌کند هیچ مسیری (try/catch، اعتبارسنجی، خطای غیرمنتظره)
+ * پاسخ خالی یا غیر JSON برنگرداند.
+ */
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
 export async function POST(req: Request) {
   try {
     await ensureSeed();
-    const body = (await req.json()) as {
-      customerName?: string;
-      phone?: string;
-      province?: string;
-      city?: string;
-      address?: string;
-      postalCode?: string;
-      plateNumber?: string;
-      note?: string;
-      items?: IncomingItem[];
-      paymentMethod?: string;
-    };
+
+    // ── خواندن امن بدنه ── (بدنه خراب یا خالی نباید کل درخواست را بترکاند)
+    let body: OrderBody;
+    try {
+      body = (await req.json()) as OrderBody;
+    } catch {
+      return json({ ok: false, error: "داده‌های ارسالی نامعتبر است" }, 400);
+    }
+    if (!body || typeof body !== "object") {
+      return json({ ok: false, error: "داده‌های ارسالی نامعتبر است" }, 400);
+    }
 
     const paymentMethod = body.paymentMethod === "card" ? "card" : "online";
 
@@ -36,51 +60,31 @@ export async function POST(req: Request) {
     const address = (body.address ?? "").trim();
     const postalCode = (body.postalCode ?? "").trim();
     const plateNumber = (body.plateNumber ?? "").trim();
+    const normalizedPostalCode = postalCode.replace(/\D/g, "");
 
     const rawItems = Array.isArray(body.items) ? body.items.slice(0, 40) : [];
 
     // اعتبارسنجی فیلدهای اجباری
     if (!customerName) {
-      return NextResponse.json(
-        { ok: false, error: "نام و نام خانوادگی الزامی است" },
-        { status: 400 },
-      );
+      return json({ ok: false, error: "نام و نام خانوادگی الزامی است" }, 400);
     }
     if (!phone || phone.replace(/\D/g, "").length < 10) {
-      return NextResponse.json(
-        { ok: false, error: "شماره موبایل معتبر الزامی است" },
-        { status: 400 },
-      );
+      return json({ ok: false, error: "شماره موبایل معتبر الزامی است" }, 400);
     }
     if (!province) {
-      return NextResponse.json(
-        { ok: false, error: "استان الزامی است" },
-        { status: 400 },
-      );
+      return json({ ok: false, error: "استان الزامی است" }, 400);
     }
     if (!city) {
-      return NextResponse.json(
-        { ok: false, error: "شهر الزامی است" },
-        { status: 400 },
-      );
+      return json({ ok: false, error: "شهر الزامی است" }, 400);
     }
     if (address.length < 5) {
-      return NextResponse.json(
-        { ok: false, error: "آدرس پستی الزامی است (حداقل ۵ کاراکتر)" },
-        { status: 400 },
-      );
+      return json({ ok: false, error: "آدرس پستی الزامی است (حداقل ۵ کاراکتر)" }, 400);
     }
-    if (!/^\d{10}$/.test(postalCode.replace(/\D/g, ""))) {
-      return NextResponse.json(
-        { ok: false, error: "کد پستی باید ۱۰ رقم باشد" },
-        { status: 400 },
-      );
+    if (!/^\d{10}$/.test(normalizedPostalCode)) {
+      return json({ ok: false, error: "کد پستی باید ۱۰ رقم باشد" }, 400);
     }
     if (rawItems.length === 0) {
-      return NextResponse.json(
-        { ok: false, error: "سبد خرید خالی است" },
-        { status: 400 },
-      );
+      return json({ ok: false, error: "سبد خرید خالی است" }, 400);
     }
 
     const ids = rawItems
@@ -88,10 +92,7 @@ export async function POST(req: Request) {
       .filter((x): x is string => Boolean(x));
 
     if (ids.length === 0) {
-      return NextResponse.json(
-        { ok: false, error: "شناسه محصولات نامعتبر است" },
-        { status: 400 },
-      );
+      return json({ ok: false, error: "شناسه محصولات نامعتبر است" }, 400);
     }
 
     const dbRows = await db
@@ -121,10 +122,7 @@ export async function POST(req: Request) {
       .filter((i): i is NonNullable<typeof i> => i !== null);
 
     if (items.length === 0) {
-      return NextResponse.json(
-        { ok: false, error: "هیچ محصول معتبری در سبد یافت نشد" },
-        { status: 400 },
-      );
+      return json({ ok: false, error: "هیچ محصول معتبری در سبد یافت نشد" }, 400);
     }
 
     const total = items.reduce((s, i) => s + i.price * i.qty, 0);
@@ -153,7 +151,7 @@ export async function POST(req: Request) {
         province,
         city,
         address,
-        postalCode: postalCode.replace(/\D/g, ""),
+        postalCode: normalizedPostalCode,
         plateNumber,
         note: (body.note ?? "").trim().slice(0, 1000),
         items,
@@ -166,12 +164,28 @@ export async function POST(req: Request) {
       })
       .returning({ id: orders.id });
 
-    return NextResponse.json({ ok: true, id: row.id, trackingCode });
+    // ── ذخیره آدرس تحویل روی پروفایل کاربر (برای پیش‌پر کردن خریدهای بعدی) ──
+    if (sessionUser) {
+      try {
+        await db
+          .update(users)
+          .set({
+            address,
+            province,
+            city,
+            postalCode: normalizedPostalCode,
+            plateNumber: plateNumber || null,
+          })
+          .where(eq(users.id, sessionUser.id));
+      } catch (e) {
+        // ذخیره آدرس نباید باعث شکست ثبت سفارش شود
+        console.error("[orders] ذخیره آدرس کاربر ناموفق بود:", e);
+      }
+    }
+
+    return json({ ok: true, id: row.id, trackingCode });
   } catch (e) {
-    console.error(e);
-    return NextResponse.json(
-      { ok: false, error: "خطای سرور" },
-      { status: 500 },
-    );
+    console.error("[orders]", e);
+    return json({ ok: false, error: "خطای سرور؛ لطفاً دوباره تلاش کنید" }, 500);
   }
 }

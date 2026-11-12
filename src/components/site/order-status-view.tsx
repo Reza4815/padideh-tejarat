@@ -31,6 +31,17 @@ import { StatusBadge } from "@/components/site/account/order-card";
 const RECEIPT_ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 const RECEIPT_MAX = 2 * 1024 * 1024;
 
+/** خواندن امن JSON از پاسخ سرور (پاسخ خالی/غیر JSON باعث کرش نمی‌شود) */
+async function readJsonSafe<T>(res: Response): Promise<T | null> {
+  try {
+    const raw = await res.text();
+    if (!raw.trim()) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 export function OrderStatusView({ order }: { order: OrderRow }) {
   const [copied, setCopied] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -137,23 +148,39 @@ export function OrderStatusView({ order }: { order: OrderRow }) {
     try {
       const form = new FormData();
       form.append("file", file);
-      const up = await fetch("/api/receipts/upload", {
-        method: "POST",
-        body: form,
-      });
-      const upData = (await up.json()) as {
+      let up: Response;
+      try {
+        up = await fetch("/api/receipts/upload", {
+          method: "POST",
+          body: form,
+        });
+      } catch {
+        throw new Error("ارتباط با سرور برقرار نشد؛ دوباره تلاش کنید");
+      }
+      const upData = await readJsonSafe<{
         ok?: boolean;
         url?: string;
         error?: string;
-      };
+      }>(up);
+      if (!upData) {
+        throw new Error("پاسخ سرور برای آپلود رسید معتبر نبود؛ دوباره تلاش کنید");
+      }
       if (!up.ok || !upData.ok || !upData.url)
         throw new Error(upData.error ?? "آپلود ناموفق بود");
-      const res = await fetch(`/api/orders/${order.id}/receipt`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiptUrl: upData.url }),
-      });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
+      let res: Response;
+      try {
+        res = await fetch(`/api/orders/${order.id}/receipt`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ receiptUrl: upData.url }),
+        });
+      } catch {
+        throw new Error("ارتباط با سرور برقرار نشد؛ دوباره تلاش کنید");
+      }
+      const data = await readJsonSafe<{ ok?: boolean; error?: string }>(res);
+      if (!data) {
+        throw new Error("پاسخ سرور برای ثبت رسید معتبر نبود؛ دوباره تلاش کنید");
+      }
       if (!res.ok || !data.ok)
         throw new Error(data.error ?? "ثبت رسید ناموفق بود");
       setDone(true);
