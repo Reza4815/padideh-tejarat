@@ -44,13 +44,16 @@ export async function POST(req: Request) {
     // ساخت پوشه products در FTP (اگر نباشد)
     await client.ensureDir("products");
 
-    // آپلود فایل
+    // ✅ رفتن به داخل پوشه products (حل مشکل 553)
+    await client.cwd("products");
+
+    // آپلود فایل با نام ساده (چون الان داخل پوشه هستیم)
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const stream = Readable.from(buffer);
     await client.uploadFrom(stream, filename);
   } catch (err) {
-    // این خط رو اضافه کن تا خطای کامل رو ببینی
+    // چاپ خطای کامل برای دیباگ
     console.error("FTP Upload Error Details:", err);
 
     return NextResponse.json(
@@ -61,7 +64,7 @@ export async function POST(req: Request) {
     client.close();
   }
 
-  // آدرس عکس به API جدید ما اشاره می‌کند
+  // آدرس عکس به API خواندن عکس اشاره می‌کند
   const url = `/api/image/products/${filename}`;
 
   return NextResponse.json({ ok: true, url });

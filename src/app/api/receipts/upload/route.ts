@@ -2,19 +2,6 @@ import { NextResponse } from "next/server";
 import { Client } from "basic-ftp";
 import { Readable } from "stream";
 
-// NOTE: منطق آپلود دقیقاً مشابه src/app/api/admin/upload/route.ts است
-// (همان آپلود روی FTP چابکان) با این تفاوت‌ها:
-// - بدون نیاز به لاگین ادمین (عمومی، برای رسید کارت‌به‌کارت مشتری)
-// - حداکثر ۲ مگابایت و فقط jpg/png/webp
-// - ذخیره در پوشه receipts/ و بازگرداندن آدرس /api/image/receipts/<file>
-// آپلود از سمت کلاینت با FormData انجام می‌شود تا درگیر سقف ۴.۵ مگابایتی
-// بدنه‌ی Server Action نشود.
-//
-// چرا دیگر Vercel Blob استفاده نمی‌شود؟
-// توکن Blob روی هاست چابکان معتبر/در دسترس نیست و put() با خطای توکن
-// می‌افتاد؛ این خطا باعث می‌شد پاسخ سرور JSON معتبر نباشد و کلاینت
-// با خطای «Unexpected end of JSON input» کرش کند.
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -31,7 +18,6 @@ function json(data: unknown, status = 200) {
 
 export async function POST(req: Request) {
   try {
-    // ── خواندن امن فرم ──
     let form: FormData;
     try {
       form = await req.formData();
@@ -56,7 +42,6 @@ export async function POST(req: Request) {
 
     const filename = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
 
-    // ── آپلود روی FTP چابکان (مثل آپلود تصاویر محصولات) ──
     const client = new Client();
     try {
       await client.access({
@@ -69,10 +54,14 @@ export async function POST(req: Request) {
       // ساخت پوشه receipts در FTP (اگر نباشد)
       await client.ensureDir("receipts");
 
+      // ✅ رفتن به داخل پوشه receipts (حل مشکل 553)
+      await client.cwd("receipts");
+
+      // آپلود فایل با نام ساده (چون الان داخل پوشه هستیم)
       const buffer = Buffer.from(await file.arrayBuffer());
       await client.uploadFrom(Readable.from(buffer), filename);
     } catch (err) {
-      console.error("FTP Upload Error Details:", err);
+      console.error("FTP Receipt Upload Error Details:", err);
       return json({ ok: false, error: "آپلود رسید ناموفق بود" }, 500);
     } finally {
       try {
@@ -82,7 +71,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // آدرس رسید از همان مسیر سرو شدهٔ تصاویر
     const url = `/api/image/receipts/${filename}`;
 
     return json({ ok: true, url });
