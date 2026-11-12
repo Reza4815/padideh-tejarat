@@ -7,7 +7,6 @@ export async function GET(
   { params }: { params: Promise<{ path: string[] }> },
 ) {
   const { path: segments } = await params;
-  // مسیر فایل در FTP (مثلاً products/123.jpg)
   const filePath = segments.join("/");
 
   const client = new Client();
@@ -27,13 +26,11 @@ export async function GET(
       },
     });
 
-    // دانلود فایل از FTP
     await client.downloadTo(writable, filePath);
     client.close();
 
     const buffer = Buffer.concat(chunks);
 
-    // تشخیص نوع فایل برای مرورگر
     const ext = filePath.split(".").pop()?.toLowerCase();
     const contentType =
       ext === "png"
