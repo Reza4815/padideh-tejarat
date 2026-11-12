@@ -410,11 +410,17 @@ export function CheckoutView() {
   }
 
   const hasSaved = Boolean(savedAddress?.address);
-  const hasAddress = Boolean(draft.address.trim());
-  // اگر آدرس ذخیره‌شده وجود دارد، فرم دستی پشت دکمه «ویرایش آدرس» پنهان می‌ماند
-  const showAddressForm = addressOpen || (!hasSaved && !hasAddress);
+  // با آدرس ذخیره‌شده: فرم دستی پشت دکمه «ویرایش آدرس» پنهان می‌ماند و کارت
+  // «انتخاب آدرس ذخیره‌شده» در بالای بخش نمایش داده می‌شود.
+  // بدون آدرس ذخیره‌شده: فرم دستی (پیش‌پرشده با آدرس واردشده در سبد) از ابتدا باز است.
+  const showAddressForm = hasSaved ? addressOpen : true;
+  // آدرس ذخیره‌شده فقط وقتی «انتخاب‌شده» است که کل آدرس (نه فقط نشانی) یکی باشد
   const savedSelected =
-    hasSaved && draft.address.trim() === (savedAddress?.address ?? "").trim();
+    hasSaved &&
+    draft.province.trim() === (savedAddress?.province ?? "").trim() &&
+    draft.city.trim() === (savedAddress?.city ?? "").trim() &&
+    draft.address.trim() === (savedAddress?.address ?? "").trim() &&
+    draft.postalCode.trim() === (savedAddress?.postalCode ?? "").trim();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -464,7 +470,7 @@ export function CheckoutView() {
             <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
               <MapPin className="h-4 w-4 text-gold-600" />
               <h2 className="text-sm font-black text-ink-950 dark:text-zinc-100">آدرس تحویل</h2>
-              {(hasSaved || hasAddress) && (
+              {hasSaved && (
                 <button
                   type="button"
                   onClick={() => setAddressOpen((v) => !v)}
