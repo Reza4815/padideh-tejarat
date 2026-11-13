@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Client } from "basic-ftp";
-import { Writable } from "stream";
+import {NextRequest, NextResponse} from "next/server";
+import {Client} from "basic-ftp";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> },
+  {params}: {params: Promise<{path: string[]}>},
 ) {
-  const { path: segments } = await params;
+  const {path: segments} = await params;
   const filePath = segments.join("/");
 
   const client = new Client();
@@ -18,18 +17,15 @@ export async function GET(
       secure: false,
     });
 
+    // ✅ روش استاندارد و مطمئن‌تر برای خواندن فایل از FTP
+    const stream = await client.download(filePath);
+
     const chunks: Buffer[] = [];
-    const writable = new Writable({
-      write(chunk, _enc, cb) {
-        chunks.push(chunk);
-        cb();
-      },
-    });
-
-    await client.downloadTo(writable, filePath);
-    client.close();
-
+    for await (const chunk of stream) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
     const buffer = Buffer.concat(chunks);
+    client.close();
 
     const ext = filePath.split(".").pop()?.toLowerCase();
     const contentType =
@@ -50,7 +46,8 @@ export async function GET(
       },
     });
   } catch (err) {
+    console.error("FTP Image Fetch Error:", err);
     client.close();
-    return new NextResponse("Image Not Found", { status: 404 });
+    return new NextResponse("Image Not Found", {status: 404});
   }
 }
