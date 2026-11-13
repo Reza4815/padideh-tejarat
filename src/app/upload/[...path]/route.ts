@@ -1,0 +1,47 @@
+import { NextResponse } from "next/server";
+import { getSessionAdmin } from "@/lib/auth";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
+
+const ALLOWED: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/avif": "avif",
+  "image/gif": "gif",
+};
+const MAX_SIZE = 4 * 1024 * 1024;
+
+export async function POST(req: Request) {
+  const admin = await getSessionAdmin();
+  if (!admin)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const form = await req.formData();
+  const file = form.get("file");
+  if (!(file instanceof File))
+    return NextResponse.json({ error: "فایلی ارسال نشده" }, { status: 400 });
+  if (file.size > MAX_SIZE)
+    return NextResponse.json({ error: "حجم فایل زیاد است" }, { status: 400 });
+
+  const ext = ALLOWED[file.type];
+  if (!ext)
+    return NextResponse.json({ error: "فرمت مجاز نیست" }, { status: 400 });
+
+  const filename = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+
+  // ✅ برگشت به مسیر public (همون مسیری که قبلاً عکس‌ها اونجا ذخیره می‌شدن)
+  const uploadDir = path.join(process.cwd(), "public", "uploads", "products");
+  const filePath = path.join(uploadDir, filename);
+
+  await mkdir(uploadDir, { recursive: true });
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  await writeFile(filePath, buffer);
+
+  // ✅ URL به شکل /uploads/... که Next.js خودش سرو می‌کند
+  const url = `/uploads/products/${filename}`;
+
+  return NextResponse.json({ ok: true, url });
+}

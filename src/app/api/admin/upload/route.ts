@@ -43,6 +43,7 @@ export async function POST(req: Request) {
 
     // ساخت پوشه products در FTP (اگر نباشد)
     await client.ensureDir("products");
+    await client.cd("products");
 
     // آپلود فایل
     const arrayBuffer = await file.arrayBuffer();
